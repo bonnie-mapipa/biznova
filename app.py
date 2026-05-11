@@ -47,6 +47,10 @@ SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
 SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER).strip()
 SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() != "false"
 
+# Resend HTTP API (preferred on hosts that block SMTP, e.g. Render free tier)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
+RESEND_FROM = os.getenv("RESEND_FROM", "BizNova <onboarding@resend.dev>").strip()
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.getenv("BIZNOVA_DB_PATH", os.path.join(BASE_DIR, "biznova.db"))
 IS_PROD = os.getenv("FLASK_ENV", "development").lower() == "production" or os.getenv("RENDER") is not None
@@ -110,12 +114,40 @@ def send_otp_email(to_email: str, otp: str) -> None:
         f"It expires in {OTP_TTL_MINUTES} minutes.\n"
         "If you did not request this, you can ignore this email."
     )
+    subject = "Your BizNova verification code"
+
+    # Prefer Resend HTTP API (works where outbound SMTP is blocked)
+    if RESEND_API_KEY:
+        import urllib.request, urllib.error, json as _json
+        payload = _json.dumps({
+            "from": RESEND_FROM,
+            "to": [to_email],
+            "subject": subject,
+            "text": body,
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.resend.com/emails",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r:
+                r.read()
+            return
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Resend API error {e.code}: {detail}")
+
     if not (SMTP_HOST and SMTP_FROM):
         # Dev mode: print to console
-        print(f"[OTP] {to_email} -> {otp}  (configure SMTP_* env vars to email instead)")
+        print(f"[OTP] {to_email} -> {otp}  (configure RESEND_API_KEY or SMTP_* to email instead)")
         return
     msg = EmailMessage()
-    msg["Subject"] = "Your BizNova verification code"
+    msg["Subject"] = subject
     msg["From"] = SMTP_FROM
     msg["To"] = to_email
     msg.set_content(body)
