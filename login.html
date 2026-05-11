@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign in · BizNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C; --gold-light:#F0D98B; --gold-dark:#8A6820;
+  --green:#1A5C3A; --green-mid:#2D7A52; --green-light:#E8F5EE;
+  --ink:#0F1A12; --ink-60:rgba(15,26,18,0.6); --ink-20:rgba(15,26,18,0.12);
+  --paper:#FAFAF7; --surface:#FFFFFF; --red:#C0392B;
+}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,var(--green) 0%,#0D3D26 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;color:var(--ink);position:relative;overflow:hidden}
+body::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+
+.card{background:var(--surface);border-radius:18px;padding:2.25rem 2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;justify-content:center}
+.brand-mark{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.brand-mark svg{width:20px;height:20px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--green);letter-spacing:-.5px}
+
+.step-indicator{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:1.5rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-20);transition:all .25s}
+.dot.active{background:var(--gold);width:24px;border-radius:6px}
+.dot.done{background:var(--green)}
+
+h2{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--ink);margin-bottom:.35rem;text-align:center}
+.subtitle{color:var(--ink-60);font-size:13.5px;text-align:center;margin-bottom:1.5rem;line-height:1.5}
+
+.field{margin-bottom:.9rem}
+label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-60);margin-bottom:5px}
+input{width:100%;padding:11px 13px;border:1.5px solid var(--ink-20);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--paper);outline:none;transition:border .2s,background .2s}
+input:focus{border-color:var(--green);background:var(--surface)}
+input.otp{text-align:center;font-size:22px;letter-spacing:8px;font-weight:600;font-family:'DM Sans',sans-serif}
+
+.row{display:flex;gap:10px}
+.row .field{flex:1}
+
+.btn{width:100%;padding:12px;border:none;border-radius:40px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;margin-top:.5rem}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--green-mid)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-link{background:none;color:var(--green);font-size:13px;width:auto;padding:6px 0;font-weight:500;margin-top:.4rem}
+.btn-link:hover{text-decoration:underline}
+
+.msg{font-size:12.5px;padding:9px 12px;border-radius:8px;margin-bottom:.85rem;line-height:1.5}
+.msg.error{background:#FDEDEB;color:var(--red);border:1px solid #F5C9C3}
+.msg.info{background:var(--green-light);color:var(--green);border:1px solid #BFE0CC}
+.msg.dev{background:#FFF8E8;color:#6B5010;border:1px dashed var(--gold);font-family:monospace;text-align:center;font-size:13.5px}
+.hidden{display:none}
+
+.foot{text-align:center;font-size:12px;color:var(--ink-60);margin-top:1.25rem}
+.email-pill{display:inline-block;background:var(--green-light);color:var(--green);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:.6rem}
+.helper{font-size:11.5px;color:var(--ink-60);margin-top:4px}
+
+/* RESPONSIVE */
+@media (max-width: 480px){
+  body{padding:.85rem;align-items:flex-start;padding-top:1.25rem}
+  .card{padding:1.5rem 1.25rem;border-radius:14px;box-shadow:0 12px 36px rgba(0,0,0,0.3)}
+  .brand-name{font-size:1.4rem}
+  .brand-mark{width:32px;height:32px}
+  h2{font-size:1.2rem}
+  .subtitle{font-size:13px;margin-bottom:1.25rem}
+  input{font-size:16px;padding:11px 12px} /* prevent iOS zoom */
+  input.otp{font-size:20px;letter-spacing:6px}
+  .row{flex-direction:column;gap:0}
+  .btn{padding:13px;font-size:14.5px}
+}
+@media (max-width: 340px){
+  .card{padding:1.25rem 1rem}
+  input.otp{letter-spacing:4px;font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <span class="brand-mark">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="white" stroke-width="1.5" fill="none"/><path d="M8 5V11M5 8H11" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </span>
+    <span class="brand-name">BizNova</span>
+  </div>
+
+  <div class="step-indicator">
+    <span class="dot active" id="dot-1"></span>
+    <span class="dot" id="dot-2"></span>
+    <span class="dot" id="dot-3"></span>
+  </div>
+
+  <div id="alert"></div>
+
+  <!-- STEP 1: EMAIL -->
+  <section id="step-email">
+    <h2>Welcome to BizNova</h2>
+    <p class="subtitle">Enter your email — we'll send you a one-time pin to sign in.</p>
+    <form id="form-email" autocomplete="on">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" required autocomplete="email" placeholder="you@example.com"/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="btn-send">Send one-time pin</button>
+    </form>
+  </section>
+
+  <!-- STEP 2: OTP -->
+  <section id="step-otp" class="hidden">
+    <h2>Check your email</h2>
+    <p class="subtitle">We sent a 6-digit code to <span class="email-pill" id="email-display"></span><br/>It expires in 10 minutes.</p>
+    <form id="form-otp">
+      <div class="field">
+        <label for="otp">One-time pin</label>
+        <input type="text" id="otp" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" class="otp" placeholder="••••••"/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="btn-verify">Verify code</button>
+      <button type="button" class="btn btn-link" onclick="goBackToEmail()">← Use a different email</button>
+      <button type="button" class="btn btn-link" onclick="resendOtp()" id="btn-resend">Resend code</button>
+    </form>
+  </section>
+
+  <!-- STEP 3a: REGISTER (new user) -->
+  <section id="step-register" class="hidden">
+    <h2>Create your account</h2>
+    <p class="subtitle">Just a few details to finish setting up.</p>
+    <form id="form-register" autocomplete="on">
+      <div class="row">
+        <div class="field"><label for="first">First name</label><input type="text" id="first" required autocomplete="given-name"/></div>
+        <div class="field"><label for="last">Last name</label><input type="text" id="last" required autocomplete="family-name"/></div>
+      </div>
+      <div class="field">
+        <label for="pwd">Create password</label>
+        <input type="password" id="pwd" required minlength="8" autocomplete="new-password"/>
+        <div class="helper">At least 8 characters.</div>
+      </div>
+      <div class="field">
+        <label for="pwd2">Re-enter password</label>
+        <input type="password" id="pwd2" required minlength="8" autocomplete="new-password"/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="btn-register">Create account</button>
+    </form>
+  </section>
+
+  <!-- STEP 3b: LOGIN (existing user) -->
+  <section id="step-login" class="hidden">
+    <h2>Welcome back</h2>
+    <p class="subtitle">Enter your password to continue.</p>
+    <form id="form-login" autocomplete="on">
+      <input type="email" id="login-email-hidden" autocomplete="email" class="hidden"/>
+      <div class="field">
+        <label for="login-pwd">Password</label>
+        <input type="password" id="login-pwd" required autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="btn-login">Sign in</button>
+    </form>
+  </section>
+
+  <div class="foot">© 2026 BizNova · Built for SA entrepreneurs</div>
+</div>
+
+<script>
+const API_BASE = '';
+let currentEmail = '';
+
+// Already logged in? Skip the page.
+fetch(API_BASE + '/api/auth/me', { credentials:'include' })
+  .then(r=>r.json()).then(d=>{ if(d.authenticated){ window.location.href='/'; } })
+  .catch(()=>{});
+
+function show(id){
+  ['step-email','step-otp','step-register','step-login'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+  // step indicator
+  const map = { 'step-email':1, 'step-otp':2, 'step-register':3, 'step-login':3 };
+  const n = map[id];
+  for(let i=1;i<=3;i++){
+    const d = document.getElementById('dot-'+i);
+    d.classList.toggle('active', i===n);
+    d.classList.toggle('done', i<n);
+  }
+  clearAlert();
+}
+
+function alertMsg(text, type='error'){
+  const a = document.getElementById('alert');
+  a.innerHTML = '<div class="msg '+type+'">'+text+'</div>';
+}
+function clearAlert(){ document.getElementById('alert').innerHTML=''; }
+
+function setBusy(btn, busy, busyText, idleText){
+  btn.disabled = busy;
+  btn.textContent = busy ? busyText : idleText;
+}
+
+function goBackToEmail(){
+  document.getElementById('otp').value='';
+  show('step-email');
+}
+
+async function sendOtp(email){
+  const res = await fetch(API_BASE + '/api/auth/send-otp', {
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ email })
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Failed to send code.');
+  return data;
+}
+
+document.getElementById('form-email').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const btn = document.getElementById('btn-send');
+  setBusy(btn, true, 'Sending...', 'Send one-time pin');
+  try{
+    const data = await sendOtp(email);
+    currentEmail = email;
+    document.getElementById('email-display').textContent = email;
+    document.getElementById('login-email-hidden').value = email;
+    show('step-otp');
+    if(data.dev_otp){
+      alertMsg('Dev mode (no SMTP configured). Your OTP: <strong>'+data.dev_otp+'</strong>', 'dev');
+    }
+    setTimeout(()=>document.getElementById('otp').focus(), 50);
+  }catch(err){ alertMsg(err.message); }
+  setBusy(btn, false, '', 'Send one-time pin');
+});
+
+async function resendOtp(){
+  if(!currentEmail) return;
+  const btn = document.getElementById('btn-resend');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try{
+    const data = await sendOtp(currentEmail);
+    if(data.dev_otp){
+      alertMsg('New OTP: <strong>'+data.dev_otp+'</strong>', 'dev');
+    } else {
+      alertMsg('A new code was sent to your email.', 'info');
+    }
+  }catch(err){ alertMsg(err.message); }
+  btn.disabled = false; btn.textContent = 'Resend code';
+}
+
+document.getElementById('form-otp').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const otp = document.getElementById('otp').value.trim();
+  const btn = document.getElementById('btn-verify');
+  setBusy(btn, true, 'Verifying...', 'Verify code');
+  try{
+    const res = await fetch(API_BASE + '/api/auth/verify-otp', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: currentEmail, otp })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Verification failed.');
+    if(data.is_new_user){
+      show('step-register');
+      setTimeout(()=>document.getElementById('first').focus(), 50);
+    } else {
+      show('step-login');
+      setTimeout(()=>document.getElementById('login-pwd').focus(), 50);
+    }
+  }catch(err){ alertMsg(err.message); }
+  setBusy(btn, false, '', 'Verify code');
+});
+
+document.getElementById('form-register').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const first = document.getElementById('first').value.trim();
+  const last = document.getElementById('last').value.trim();
+  const pwd = document.getElementById('pwd').value;
+  const pwd2 = document.getElementById('pwd2').value;
+  if(pwd !== pwd2){ alertMsg('Passwords do not match.'); return; }
+  const btn = document.getElementById('btn-register');
+  setBusy(btn, true, 'Creating account...', 'Create account');
+  try{
+    const res = await fetch(API_BASE + '/api/auth/register', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: currentEmail, first_name:first, last_name:last, password:pwd, password_confirm:pwd2 })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not create account.');
+    window.location.href = '/';
+  }catch(err){ alertMsg(err.message); setBusy(btn, false, '', 'Create account'); }
+});
+
+document.getElementById('form-login').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const pwd = document.getElementById('login-pwd').value;
+  const btn = document.getElementById('btn-login');
+  setBusy(btn, true, 'Signing in...', 'Sign in');
+  try{
+    const res = await fetch(API_BASE + '/api/auth/login', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: currentEmail, password: pwd })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Sign-in failed.');
+    window.location.href = '/';
+  }catch(err){ alertMsg(err.message); setBusy(btn, false, '', 'Sign in'); }
+});
+</script>
+</body>
+</html>

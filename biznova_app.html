@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BizNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;
+  --gold-light:#F0D98B;
+  --gold-dark:#8A6820;
+  --green:#1A5C3A;
+  --green-mid:#2D7A52;
+  --green-light:#E8F5EE;
+  --ink:#0F1A12;
+  --ink-60:rgba(15,26,18,0.6);
+  --ink-20:rgba(15,26,18,0.12);
+  --paper:#FAFAF7;
+  --surface:#FFFFFF;
+  --red:#C0392B;
+  --radius:12px;
+  --radius-lg:18px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+/* NAV */
+nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.18)}
+.logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.logo span{width:28px;height:28px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.logo span svg{width:16px;height:16px}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{background:none;border:none;color:rgba(255,255,255,0.65);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all .2s}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,0.1)}
+.nav-tab.active{color:var(--green);background:var(--gold);font-weight:600}
+.user-area{display:flex;align-items:center;gap:8px}
+.user-pill{background:rgba(255,255,255,0.1);color:var(--gold-light);font-size:12px;font-weight:600;padding:5px 11px;border-radius:20px;border:1px solid rgba(201,168,76,0.35);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#logout-btn{font-size:12px}
+/* VIEWS */
+.view{display:none;flex:1;flex-direction:column}
+.view.active{display:flex}
+/* HOME */
+.hero{background:linear-gradient(135deg,var(--green) 0%,#0D3D26 100%);padding:3rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero h1{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;color:#fff;line-height:1.15;margin-bottom:.5rem;position:relative}
+.hero h1 em{color:var(--gold);font-style:normal}
+.hero p{color:rgba(255,255,255,0.75);font-size:15px;max-width:520px;margin:0 auto 1.75rem;line-height:1.65;position:relative}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative}
+.btn{padding:10px 22px;border-radius:40px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
+.btn-gold{background:var(--gold);color:var(--ink)}
+.btn-gold:hover{background:var(--gold-light)}
+.btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,0.4);color:#fff}
+.btn-outline:hover{background:rgba(255,255,255,0.1)}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:1.5rem 2rem}
+.card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--ink-20);padding:1.25rem;cursor:pointer;transition:all .22s}
+.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.08)}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:.9rem;font-size:20px}
+.card h3{font-size:14px;font-weight:600;margin-bottom:.35rem;color:var(--ink)}
+.card p{font-size:12.5px;color:var(--ink-60);line-height:1.55}
+.card-arrow{margin-top:.75rem;font-size:12px;color:var(--gold);font-weight:600}
+.section-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--ink);padding:1.5rem 2rem .5rem}
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 60px)}
+.chat-header{background:var(--surface);border-bottom:1px solid var(--ink-20);padding:1rem 1.5rem;display:flex;align-items:center;gap:12px}
+.chat-header .avatar{width:38px;height:38px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center}
+.chat-header .avatar svg{width:20px;height:20px}
+.chat-header h2{font-size:15px;font-weight:600}
+.chat-header p{font-size:12px;color:var(--ink-60)}
+.mode-pills{display:flex;gap:6px;padding:10px 1.5rem;background:var(--paper);border-bottom:1px solid var(--ink-20);flex-wrap:wrap}
+.pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--ink-20);background:var(--surface);color:var(--ink-60);transition:all .2s}
+.pill.active{background:var(--green);border-color:var(--green);color:#fff}
+.pill:hover:not(.active){border-color:var(--green);color:var(--green)}
+.messages{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:82%;display:flex;flex-direction:column;gap:4px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:flex-start;align-items:flex-start}
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.6}
+.msg.user .msg-bubble{background:var(--green);color:#fff;border-bottom-right-radius:4px}
+.msg.ai .msg-bubble{background:var(--surface);border:1px solid var(--ink-20);border-bottom-left-radius:4px}
+.msg-time{font-size:10.5px;color:var(--ink-60)}
+.typing-dot{display:inline-block;width:7px;height:7px;background:var(--ink-60);border-radius:50%;animation:blink 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.chat-input-area{padding:12px 1.5rem;background:var(--surface);border-top:1px solid var(--ink-20);display:flex;gap:10px;align-items:flex-end}
+.chat-input-area textarea{flex:1;border:1.5px solid var(--ink-20);border-radius:var(--radius);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13.5px;resize:none;min-height:42px;max-height:120px;outline:none;background:var(--paper);transition:border .2s}
+.chat-input-area textarea:focus{border-color:var(--green)}
+.send-btn{width:40px;height:40px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.send-btn:hover{background:var(--green-mid)}
+.send-btn svg{width:18px;height:18px}
+.quick-prompts{display:flex;gap:6px;flex-wrap:wrap;padding:8px 1.5rem;background:var(--paper)}
+.qp{padding:5px 11px;background:var(--surface);border:1px solid var(--ink-20);border-radius:20px;font-size:12px;cursor:pointer;color:var(--ink);transition:all .2s}
+.qp:hover{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+/* PLAN BUILDER */
+.plan-wrap{flex:1;overflow-y:auto;padding:1.5rem 2rem}
+.form-section{background:var(--surface);border:1px solid var(--ink-20);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem}
+.form-section h3{font-size:14px;font-weight:600;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.form-section h3 span{width:22px;height:22px;background:var(--green);color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-60);margin-bottom:4px}
+.field input,.field textarea,.field select{width:100%;padding:9px 12px;border:1.5px solid var(--ink-20);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13.5px;outline:none;background:var(--paper);transition:border .2s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--green)}
+.field textarea{resize:vertical;min-height:72px}
+.generate-bar{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--ink-20);padding:1rem 2rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn-green{background:var(--green);color:#fff;padding:10px 24px;border-radius:40px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all .2s}
+.btn-green:hover{background:var(--green-mid)}
+.btn-green:disabled{opacity:.5;cursor:not-allowed}
+.status-msg{font-size:13px;color:var(--ink-60)}
+/* OUTPUT PANEL */
+.output-panel{background:var(--surface);border:1px solid var(--ink-20);border-radius:var(--radius-lg);padding:1.5rem;margin:0 2rem 1.5rem;white-space:pre-wrap;font-size:13.5px;line-height:1.75;display:none;position:relative}
+.output-panel.visible{display:block}
+.output-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+.output-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--green);margin-bottom:.85rem;border-bottom:2px solid var(--gold);padding-bottom:.5rem}
+/* LEGAL */
+.legal-wrap{flex:1;overflow-y:auto;padding:1.5rem 2rem}
+.steps-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
+.step-item{background:var(--surface);border:1px solid var(--ink-20);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;gap:12px;cursor:pointer;transition:all .2s}
+.step-item:hover{border-color:var(--green-mid)}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--green-light);color:var(--green);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-info h4{font-size:13.5px;font-weight:600;margin-bottom:3px}
+.step-info p{font-size:12.5px;color:var(--ink-60);line-height:1.5}
+.step-detail{display:none;background:var(--green-light);border-radius:8px;padding:.85rem;margin-top:.75rem;font-size:13px;line-height:1.65;color:var(--green)}
+.step-detail.open{display:block}
+.disclaimer{background:#FFF8E8;border:1px solid #F0D98B;border-radius:var(--radius);padding:1rem;font-size:12.5px;color:#6B5010;line-height:1.65;margin-bottom:1rem}
+/* FUNDING */
+.funding-wrap{flex:1;overflow-y:auto;padding:1.5rem 2rem}
+.fund-card{background:var(--surface);border:1px solid var(--ink-20);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:10px}
+.fund-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
+.fund-card h3{font-size:14px;font-weight:600}
+.fund-badge{padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-gold{background:rgba(201,168,76,0.15);color:var(--gold-dark)}
+.badge-blue{background:#E8F0FE;color:#1A56DB}
+.fund-meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
+.fund-meta span{font-size:12.5px;color:var(--ink-60);display:flex;align-items:center;gap:4px}
+.fund-desc{font-size:13px;color:var(--ink-60);line-height:1.6;margin-bottom:.8rem}
+.fund-btn{padding:7px 16px;border-radius:20px;background:var(--green-light);color:var(--green);font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .2s}
+.fund-btn:hover{background:var(--green);color:#fff}
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--ink-20);border-radius:10px}
+.ai-badge{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);color:var(--green);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;margin-bottom:.5rem}
+/* PLAN PREVIEW */
+.plan-pane{background:var(--paper);border:1px solid var(--ink-20);border-radius:10px;padding:1.5rem 1.75rem;max-height:560px;overflow-y:auto}
+.plan-pane h1{font-family:'Playfair Display',serif;color:var(--green);font-size:1.5rem;margin:.4rem 0 .6rem;border-bottom:2px solid var(--gold);padding-bottom:.4rem}
+.plan-pane h2{font-family:'Playfair Display',serif;color:var(--green);font-size:1.15rem;margin:1.1rem 0 .5rem}
+.plan-pane h3{color:var(--ink);font-size:.98rem;margin:.85rem 0 .35rem}
+.plan-pane p{font-size:13.5px;line-height:1.7;color:var(--ink);margin:0 0 .65rem}
+.plan-pane ul{margin:.25rem 0 .75rem 1.25rem;padding:0}
+.plan-pane li{font-size:13.5px;line-height:1.65;margin-bottom:.25rem;color:var(--ink)}
+.plan-pane strong{color:var(--ink)}
+.plan-pane code{background:rgba(201,168,76,0.12);padding:1px 5px;border-radius:4px;font-size:12.5px}
+
+/* ============ RESPONSIVE / MOBILE ============ */
+/* Tablet & below */
+@media (max-width: 900px){
+  nav{padding:0 1rem;height:auto;min-height:56px;flex-wrap:wrap;gap:8px;padding-top:8px;padding-bottom:8px}
+  .logo{font-size:18px;flex:1 1 auto}
+  .nav-tabs{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;gap:2px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .nav-tab{font-size:12px;padding:6px 12px;white-space:nowrap;flex-shrink:0}
+  .user-area{gap:6px}
+  .user-pill{font-size:11px;max-width:110px;padding:4px 9px}
+  #logout-btn{font-size:11px;padding:5px 10px}
+  .hero{padding:2rem 1.25rem}
+  .hero h1{font-size:1.85rem}
+  .hero p{font-size:14px}
+  .cards-grid{padding:1rem 1.25rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .section-title{padding:1.25rem 1.25rem .4rem;font-size:1.05rem}
+  .chat-header,.mode-pills,.chat-input-area,.quick-prompts,.messages{padding-left:1rem;padding-right:1rem}
+  .messages{padding-top:1rem;padding-bottom:1rem}
+  .msg{max-width:92%}
+  .plan-wrap,.legal-wrap,.funding-wrap{padding:1.25rem 1rem}
+  .form-section{padding:1rem}
+  .generate-bar{padding:.85rem 1rem;gap:8px}
+  .output-panel{margin:0 1rem 1.25rem;padding:1.1rem}
+  .plan-pane{padding:1.1rem 1.15rem;max-height:none}
+}
+/* Phones */
+@media (max-width: 520px){
+  .hero{padding:1.75rem 1rem}
+  .hero h1{font-size:1.55rem;line-height:1.2}
+  .hero p{font-size:13.5px;margin-bottom:1.25rem}
+  .hero-btns{flex-direction:column;align-items:stretch}
+  .hero-btns .btn{width:100%}
+  .cards-grid{grid-template-columns:1fr;padding:.85rem 1rem}
+  .card{padding:1rem}
+  .nav-tab{font-size:11.5px;padding:5px 10px}
+  .user-pill{max-width:80px}
+  .chat-wrap{height:calc(100vh - 96px);height:calc(100dvh - 96px)}
+  .chat-input-area{padding:10px 1rem}
+  .chat-input-area textarea{font-size:14px}
+  .send-btn{width:38px;height:38px}
+  .pill,.qp{font-size:11.5px}
+  .msg{max-width:96%}
+  .msg-bubble{font-size:13px;padding:9px 12px}
+  .form-section h3{font-size:13.5px}
+  .field input,.field textarea,.field select{font-size:14px} /* prevents iOS zoom */
+  .row{flex-direction:column;gap:0}
+  .output-panel{margin:0 1rem 1rem;padding:1rem;border-radius:14px}
+  .output-title{font-size:1rem}
+  .output-actions .btn,.output-actions button{flex:1 1 calc(50% - 4px);min-width:0;font-size:13px;padding:9px 14px}
+  .plan-pane{padding:1rem;border-radius:8px}
+  .plan-pane h1{font-size:1.25rem}
+  .plan-pane h2{font-size:1.05rem}
+  .plan-pane p,.plan-pane li{font-size:13px}
+  .step-item{padding:.85rem 1rem}
+  .fund-card{padding:1rem}
+  .fund-card-header{flex-direction:column;gap:6px;align-items:flex-start}
+  .generate-bar{flex-direction:column;align-items:stretch}
+  .generate-bar .btn,.generate-bar .btn-green{width:100%}
+  .status-msg{text-align:center}
+  footer{font-size:11.5px;padding:1rem .75rem}
+}
+@media (max-width: 360px){
+  .hero h1{font-size:1.35rem}
+  .logo{font-size:16px}
+  .logo span{width:24px;height:24px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <span>
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="white" stroke-width="1.5" fill="none"/><path d="M8 5V11M5 8H11" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </span>
+    BizNova
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showView('home')">Home</button>
+    <button class="nav-tab" onclick="showView('chat')">AI Assistant</button>
+    <button class="nav-tab" onclick="showView('plan')">Business Plan</button>
+    <button class="nav-tab" onclick="showView('legal')">Registration</button>
+    <button class="nav-tab" onclick="showView('funding')">Funding</button>
+  </div>
+  <div class="user-area" id="user-area">
+    <span class="user-pill" id="user-pill" title="Signed in"></span>
+    <button class="nav-tab" id="logout-btn" onclick="logout()" title="Sign out">Sign out</button>
+  </div>
+</nav>
+
+<!-- HOME VIEW -->
+<div id="view-home" class="view active">
+  <div class="hero">
+    <h1>Register your business<br/>the <em>smart way</em></h1>
+    <p>BizNova generates AI-powered business plans, guides you through CIPC registration, and connects you with the funding you need — all in one place.</p>
+    <div class="hero-btns">
+      <button class="btn btn-gold" onclick="showView('plan')">✦ Build my business plan</button>
+      <button class="btn btn-outline" onclick="showView('chat')">Chat with AI Assistant</button>
+    </div>
+  </div>
+  <div class="section-title">BizNova helps you launch smarter, faster.</div>
+  <div class="cards-grid">
+    <div class="card" onclick="showView('plan')">
+      <div class="card-icon" style="background:#E8F5EE">📄</div>
+      <h3>Business Plan</h3>
+      <p>AI-generated professional plan tailored to your business idea and industry.</p>
+      <div class="card-arrow">Get started →</div>
+    </div>
+    <div class="card" onclick="showView('chat')">
+      <div class="card-icon" style="background:#FFF8E8">🤖</div>
+      <h3>AI Assistant</h3>
+      <p>Ask any question about starting, running, or growing your business in SA.</p>
+      <div class="card-arrow">Chat now →</div>
+    </div>
+    <div class="card" onclick="showView('legal')">
+      <div class="card-icon" style="background:#F0F4FF">⚖️</div>
+      <h3>CIPC Registration</h3>
+      <p>Step-by-step guide to registering your company with plain-language explanations.</p>
+      <div class="card-arrow">View steps →</div>
+    </div>
+    <div class="card" onclick="showView('funding')">
+      <div class="card-icon" style="background:#FEF0F0">💰</div>
+      <h3>Funding Options</h3>
+      <p>Explore loans, grants, and investors available to South African entrepreneurs.</p>
+      <div class="card-arrow">Explore →</div>
+    </div>
+  </div>
+  <div class="section-title">Why BizNova?</div>
+  <div class="cards-grid" style="padding-bottom:2rem">
+    <div class="card"><div style="font-size:22px;margin-bottom:.6rem">🇿🇦</div><h3>SA-focused</h3><p>All guidance tailored to South African law, CIPC, and local funding sources.</p></div>
+    <div class="card"><div style="font-size:22px;margin-bottom:.6rem">🌍</div><h3>Plain language</h3><p>Complex regulations translated into simple, actionable steps you can follow.</p></div>
+    <div class="card"><div style="font-size:22px;margin-bottom:.6rem">⚡</div><h3>AI-powered</h3><p>Claude Sonnet generates personalised content based on your specific business.</p></div>
+    <div class="card"><div style="font-size:22px;margin-bottom:.6rem">📥</div><h3>Downloadable</h3><p>Export your business plan as a professional Word document ready to share.</p></div>
+  </div>
+</div>
+
+<!-- CHAT VIEW -->
+<div id="view-chat" class="view">
+  <div class="chat-wrap">
+    <div class="chat-header">
+      <div class="avatar">
+        <svg viewBox="0 0 20 20" fill="white"><circle cx="10" cy="7" r="3.5"/><path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <h2>Nova — Your Business Assistant</h2>
+        <p>Powered by Claude Sonnet · Ask anything about starting your South African business</p>
+      </div>
+    </div>
+    <div class="mode-pills">
+      <button class="pill active" onclick="setMode(this,'general')">💬 General</button>
+      <button class="pill" onclick="setMode(this,'business-plan')">📄 Business Plan</button>
+      <button class="pill" onclick="setMode(this,'legal')">⚖️ Legal & CIPC</button>
+      <button class="pill" onclick="setMode(this,'funding')">💰 Funding</button>
+      <button class="pill" onclick="setMode(this,'compliance')">✅ Compliance</button>
+    </div>
+    <div class="quick-prompts">
+      <button class="qp" onclick="sendQuick('How do I register a Pty Ltd company with CIPC?')">How to register Pty Ltd?</button>
+      <button class="qp" onclick="sendQuick('What is the SEDA funding programme and how do I apply?')">SEDA funding?</button>
+      <button class="qp" onclick="sendQuick('What taxes does a small business in South Africa need to pay?')">Tax obligations?</button>
+      <button class="qp" onclick="sendQuick('Help me write an executive summary for my catering business.')">Executive summary?</button>
+    </div>
+    <div class="messages" id="messages">
+      <div class="msg ai">
+        <div class="ai-badge">✦ Nova AI</div>
+        <div class="msg-bubble">Hello! I'm Nova, your BizNova AI business assistant. 👋<br/><br/>I can help you with:<br/>• Writing and refining your business plan<br/>• Understanding CIPC registration steps<br/>• Finding funding and loan options in SA<br/>• Tax and compliance guidance<br/>• Any business question you have<br/><br/>What would you like to work on today?</div>
+        <div class="msg-time">Just now</div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <textarea id="chat-input" placeholder="Ask Nova anything about starting your business..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 20 20" fill="white"><path d="M3 10L17 3L10 17L9 11L3 10Z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN VIEW -->
+<div id="view-plan" class="view">
+  <div style="padding:1.25rem 2rem .5rem;background:var(--surface);border-bottom:1px solid var(--ink-20);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700">Business Plan Builder</div>
+      <div style="font-size:12.5px;color:var(--ink-60)">Fill in your details and let AI generate a professional plan</div>
+    </div>
+  </div>
+  <div class="plan-wrap" id="plan-form-area">
+    <div class="form-section">
+      <h3><span>1</span> Business Overview</h3>
+      <div class="field"><label>Business name *</label><input type="text" id="biz-name" placeholder="e.g. Khumalo Fresh Produce"/></div>
+      <div class="field"><label>Industry / sector *</label>
+        <select id="biz-industry">
+          <option value="">Select industry...</option>
+          <option>Agriculture & Food</option>
+          <option>Retail & Wholesale</option>
+          <option>Technology & Software</option>
+          <option>Construction & Real Estate</option>
+          <option>Healthcare & Wellness</option>
+          <option>Education & Training</option>
+          <option>Manufacturing</option>
+          <option>Transport & Logistics</option>
+          <option>Financial Services</option>
+          <option>Tourism & Hospitality</option>
+          <option>Creative & Media</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Business idea / description *</label><textarea id="biz-idea" placeholder="Describe your business idea in 2-3 sentences..."></textarea></div>
+      <div class="field"><label>Province / location</label><input type="text" id="biz-location" placeholder="e.g. Gauteng, Johannesburg"/></div>
+    </div>
+    <div class="form-section">
+      <h3><span>2</span> Target Market</h3>
+      <div class="field"><label>Who are your target customers?</label><textarea id="biz-customers" placeholder="e.g. Small restaurants and food stalls in Soweto and surrounds..."></textarea></div>
+      <div class="field"><label>Main problem you solve</label><input type="text" id="biz-problem" placeholder="e.g. Fresh produce delivered affordably same-day"/></div>
+    </div>
+    <div class="form-section">
+      <h3><span>3</span> Financial Basics</h3>
+      <div class="field"><label>Estimated startup cost (ZAR)</label><input type="text" id="biz-startup" placeholder="e.g. R50,000"/></div>
+      <div class="field"><label>Expected monthly revenue (ZAR)</label><input type="text" id="biz-revenue" placeholder="e.g. R25,000"/></div>
+      <div class="field"><label>Funding needed?</label>
+        <select id="biz-funding">
+          <option value="">Select...</option>
+          <option>Self-funded (bootstrapped)</option>
+          <option>Looking for bank loan</option>
+          <option>Seeking investors</option>
+          <option>Applying for government grant</option>
+          <option>Combination of sources</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3><span>4</span> Additional Details</h3>
+      <div class="field"><label>Your main competitive advantage</label><input type="text" id="biz-advantage" placeholder="What makes you different from competitors?"/></div>
+      <div class="field"><label>Number of employees (planned)</label><input type="text" id="biz-employees" placeholder="e.g. 3 employees to start"/></div>
+    </div>
+  </div>
+  <div class="generate-bar">
+    <button class="btn-green" onclick="generatePlan()" id="gen-btn">✦ Generate Business Plan</button>
+    <span class="status-msg" id="gen-status"></span>
+  </div>
+  <div class="output-panel" id="plan-output">
+    <div class="output-title" id="plan-output-title"></div>
+
+    <div class="plan-toolbar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.85rem;border-bottom:1px solid var(--ink-20);padding-bottom:.85rem">
+      <button class="pill active" id="tab-preview" onclick="setPlanTab('preview')">👁 Preview</button>
+      <button class="pill" id="tab-edit" onclick="setPlanTab('edit')">✏️ Edit</button>
+      <span style="flex:1"></span>
+      <span class="status-msg" id="edit-status" style="font-size:12px;color:var(--ink-60);align-self:center"></span>
+    </div>
+
+    <div id="plan-preview" class="plan-pane"></div>
+    <textarea id="plan-editor" class="plan-pane" style="display:none;width:100%;min-height:480px;padding:14px;border:1.5px solid var(--ink-20);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.7;background:var(--paper);outline:none;resize:vertical" oninput="onEditorInput()"></textarea>
+
+    <div class="output-actions">
+      <button class="btn-green" onclick="exportPdf()" id="pdf-btn" style="font-size:13px;padding:8px 18px">📄 Export as PDF</button>
+      <button class="btn" onclick="downloadPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">📝 Download as Word</button>
+      <button class="btn" onclick="copyPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">📋 Copy</button>
+      <button class="btn" onclick="refinePlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">🔄 Refine with AI</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEGAL VIEW -->
+<div id="view-legal" class="view">
+  <div style="padding:1.25rem 2rem .5rem;background:var(--surface);border-bottom:1px solid var(--ink-20)">
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700">CIPC Company Registration Guide</div>
+    <div style="font-size:12.5px;color:var(--ink-60)">Step-by-step guide to registering your business in South Africa</div>
+  </div>
+  <div class="legal-wrap">
+    <div class="disclaimer">
+      ⚠️ <strong>Disclaimer:</strong> This is general guidance only and does not constitute legal advice. Requirements may change. Please verify current fees and procedures at <strong>cipc.co.za</strong> or consult a registered company secretary or attorney.
+    </div>
+    <div style="font-size:13px;color:var(--ink-60);margin-bottom:1rem">Click any step to expand details and AI guidance</div>
+    <div class="steps-list" id="steps-list">
+      <!-- Steps inserted by JS -->
+    </div>
+    <div style="background:var(--green-light);border-radius:var(--radius);padding:1.1rem;margin-bottom:1.5rem">
+      <div style="font-size:13.5px;font-weight:600;color:var(--green);margin-bottom:.5rem">🤖 Ask Nova about registration</div>
+      <div style="font-size:13px;color:var(--green-mid);margin-bottom:.75rem">Have a specific question about registering your company?</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="fund-btn" onclick="showView('chat');sendQuick('What is the difference between Pty Ltd and NPC in South Africa?')">Pty Ltd vs NPC?</button>
+        <button class="fund-btn" onclick="showView('chat');sendQuick('How long does CIPC registration take?')">How long does it take?</button>
+        <button class="fund-btn" onclick="showView('chat');sendQuick('What documents do I need for CIPC registration in South Africa?')">Required documents?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FUNDING VIEW -->
+<div id="view-funding" class="view">
+  <div style="padding:1.25rem 2rem .5rem;background:var(--surface);border-bottom:1px solid var(--ink-20)">
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700">Funding & Finance Options</div>
+    <div style="font-size:12.5px;color:var(--ink-60)">Explore funding sources available to South African entrepreneurs</div>
+  </div>
+  <div class="funding-wrap" id="funding-content">
+    <div class="disclaimer">
+      ⚠️ <strong>Disclaimer:</strong> Funding information is aggregated from public sources. Eligibility criteria and amounts may change. BizNova does not process loan applications or provide financial advice. Consult a qualified financial advisor.
+    </div>
+    <!-- Inserted by JS -->
+  </div>
+</div>
+
+<script>
+const API_BASE = location.origin.startsWith('http') ? '' : 'http://localhost:5001';
+let chatMode = "general";
+let planText = "";
+let planName = "";
+let chatHistory = [];
+
+const registrationSteps = [
+  {num:1, title:"Choose your company type", summary:"Decide the right legal structure for your business", detail:"The most common type is a Private Company (Pty Ltd). Others include Non-Profit Company (NPC) and Personal Liability Company (Inc.). For most small businesses, a Pty Ltd is recommended as it protects your personal assets and is easy to manage."},
+  {num:2, title:"Reserve your company name", summary:"Check name availability and reserve it via CIPC", detail:"Go to cipc.co.za and use the name search tool. You can reserve up to 4 name choices. The fee is R50 per name reservation. Names must be unique and cannot be offensive or too similar to existing names. This step is optional — you can also use a company number as your name."},
+  {num:3, title:"Prepare your founding documents", summary:"Complete the Memorandum of Incorporation (MOI)", detail:"The MOI is the governing document of your company. CIPC provides a standard MOI (CoR15.1A for Pty Ltd) that you can use. It outlines the rules and structure of your company. You may customise it with legal assistance, or use the standard version."},
+  {num:4, title:"Register on CIPC e-Services", summary:"Create your account at cipc.co.za", detail:"Visit cipc.co.za and register for a customer account. You will need your South African ID number, email address, and contact details. Once registered, you can use the e-Services portal to submit your registration application online."},
+  {num:5, title:"Submit your application", summary:"Complete CoR14.1 form and pay the registration fee", detail:"Log into e-Services and complete the CoR14.1 form. Provide director details, share information, and attach your MOI. The registration fee is approximately R175. You can pay via EFT or at a CIPC office. Processing typically takes 5-10 business days."},
+  {num:6, title:"Receive your registration certificate", summary:"Get your CoR14.3 certificate confirming registration", detail:"Once approved, CIPC will email your Certificate of Incorporation (CoR14.3). This is your proof of registration. Store it safely — you will need it to open a business bank account, apply for funding, and sign contracts."},
+  {num:7, title:"Register for tax with SARS", summary:"Get your income tax and VAT registration", detail:"Once registered, visit sars.gov.za to register your company for income tax. If your turnover will exceed R1 million per year, you must also register for VAT. You may also need to register as an employer if you plan to hire staff (for PAYE and UIF)."},
+  {num:8, title:"Open a business bank account", summary:"Separate your business and personal finances", detail:"Use your CoR14.3 and ID documents to open a dedicated business account. Banks like FNB, Standard Bank, Nedbank, Absa, and Capitec offer small business accounts. Keeping finances separate is legally important and makes tax filing easier."}
+];
+
+const fundingOptions = [
+  {name:"SEDA — Small Enterprise Development Agency", type:"Government Grant / Support", badge:"badge-green", amount:"Up to R3 million", interest:"0% (grant/support)", target:"SMMEs & startups", desc:"SEDA provides non-financial support (business training, mentoring, market access) and channels funding to qualifying SMMEs. They operate 54 branches nationwide. Free business development services available."},
+  {name:"IDC — Industrial Development Corporation", type:"Government Loan / Equity", badge:"badge-blue", amount:"R1 million – R1 billion", interest:"Subsidised rates", target:"Manufacturing, industry, export", desc:"IDC funds entrepreneurs in industrial sectors with loans and equity. Strong focus on job creation and historically disadvantaged individuals. Application requires a solid business plan and track record."},
+  {name:"NEF — National Empowerment Fund", type:"Government Loan", badge:"badge-green", amount:"R250,000 – R75 million", interest:"Below prime", target:"Black entrepreneurs", desc:"NEF specifically finances black entrepreneurs and black-owned businesses. Offers franchise finance, procurement finance, and expansion funding. Requires business plan and B-BBEE compliance."},
+  {name:"NYDA — National Youth Development Agency", type:"Grant / Loan", badge:"badge-gold", amount:"Up to R100,000 (grant)", interest:"Low interest loans available", target:"Youth aged 14–35", desc:"NYDA offers grants and loans to South African youth entrepreneurs. Also provides business support services, training, and mentorship. Strong priority for youth in rural areas."},
+  {name:"Khula Credit Guarantee Scheme", type:"Loan Guarantee", badge:"badge-blue", amount:"Variable (bank guarantee)", interest:"Per bank's rates", target:"SMMEs lacking collateral", desc:"Khula helps entrepreneurs without collateral access bank loans by providing a guarantee. Work with participating commercial banks. Ideal if you have a good business plan but limited assets."},
+  {name:"Commercial Banks — SMME Loans", type:"Bank Loan", badge:"badge-gold", amount:"R10,000 – R5 million", interest:"Prime + 2-5%", target:"Registered businesses with 1+ year", desc:"FNB, Standard Bank, Absa, Nedbank and Capitec all offer SMME loan products. You typically need 1-2 years of financial statements, a business plan, and registered company documents. Compare rates carefully."},
+];
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    const ids=['home','chat','plan','legal','funding'];
+    t.classList.toggle('active', ids[i]===id);
+  });
+  document.getElementById('view-'+id).classList.add('active');
+}
+
+function setMode(el, mode) {
+  chatMode = mode;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function autoResize(el) {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function handleKey(e) {
+  if(e.key==='Enter' && !e.shiftKey){e.preventDefault();sendMessage();}
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg '+role;
+  const now = new Date();
+  const time = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  div.innerHTML = (role==='ai'?'<div class="ai-badge">✦ Nova AI</div>':'')+
+    '<div class="msg-bubble">'+text.replace(/\n/g,'<br/>')+'</div>'+
+    '<div class="msg-time">'+time+'</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className='msg ai';div.id='typing-indicator';
+  div.innerHTML='<div class="ai-badge">✦ Nova AI</div><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function removeTyping(){const t=document.getElementById('typing-indicator');if(t)t.remove();}
+
+async function sendMessage() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if(!text) return;
+  inp.value='';inp.style.height='auto';
+  appendMsg('user', text);
+  chatHistory.push({role:'user',content:text});
+  showTyping();
+  try {
+    const res = await fetch(API_BASE + '/api/chat', {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ mode: chatMode, messages: chatHistory })
+    });
+    const data = await res.json();
+    removeTyping();
+    if(res.status === 401){ window.location.href='/login'; return; }
+    if(!res.ok){
+      appendMsg('ai', 'Error: ' + (data.error || 'Request failed.'));
+      chatHistory.pop();
+      return;
+    }
+    const reply = data.reply || "I'm sorry, I couldn't process that. Please try again.";
+    chatHistory.push({role:'assistant',content:reply});
+    appendMsg('ai', reply);
+  } catch(e) {
+    removeTyping();
+    appendMsg('ai','Sorry, there was a connection error. Make sure the Python backend is running (python app.py).');
+    chatHistory.pop();
+  }
+}
+
+function sendQuick(text) {
+  showView('chat');
+  setTimeout(()=>{
+    document.getElementById('chat-input').value=text;
+    sendMessage();
+  },100);
+}
+
+async function generatePlan() {
+  const name=document.getElementById('biz-name').value.trim();
+  const industry=document.getElementById('biz-industry').value;
+  const idea=document.getElementById('biz-idea').value.trim();
+  if(!name||!idea){
+    document.getElementById('gen-status').textContent='Please enter business name and description.';
+    return;
+  }
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;btn.textContent='✦ Generating...';
+  document.getElementById('gen-status').textContent='AI is writing your business plan...';
+
+  const payload = {
+    name,
+    industry,
+    idea,
+    location: document.getElementById('biz-location').value,
+    customers: document.getElementById('biz-customers').value,
+    problem: document.getElementById('biz-problem').value,
+    startup: document.getElementById('biz-startup').value,
+    revenue: document.getElementById('biz-revenue').value,
+    funding: document.getElementById('biz-funding').value,
+    advantage: document.getElementById('biz-advantage').value,
+    employees: document.getElementById('biz-employees').value,
+  };
+
+  try {
+    const res = await fetch(API_BASE + '/api/plan', {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!res.ok){
+      document.getElementById('gen-status').textContent = 'Error: ' + (data.error || 'Request failed.');
+      btn.disabled=false;btn.textContent='✦ Generate Business Plan';
+      return;
+    }
+    planText = data.plan || 'Could not generate plan.';
+    planName = data.name || name;
+    const out = document.getElementById('plan-output');
+    document.getElementById('plan-output-title').textContent=planName+' — Business Plan';
+    document.getElementById('plan-editor').value = planText;
+    renderPreview();
+    setPlanTab('preview');
+    out.classList.add('visible');
+    out.scrollIntoView({behavior:'smooth'});
+    document.getElementById('gen-status').textContent='✓ Plan generated. Preview & edit before exporting.';
+  } catch(e) {
+    document.getElementById('gen-status').textContent='Connection error. Is the Python backend running?';
+  }
+  btn.disabled=false;btn.textContent='✦ Regenerate Plan';
+}
+
+function copyPlan(){
+  const editor = document.getElementById('plan-editor');
+  if(editor && editor.style.display !== 'none'){ planText = editor.value; }
+  navigator.clipboard.writeText(planText);
+  const s = document.getElementById('edit-status');
+  if(s){ s.textContent = '✓ Copied to clipboard'; setTimeout(()=>{ s.textContent=''; }, 2000); }
+}
+function refinePlan(){sendQuick('Please refine and improve this business plan section by section, making it more professional and detailed:\n\n'+planText.slice(0,800)+'...');}
+
+async function downloadPlan(){
+  if(!planText){return;}
+  try{
+    const res = await fetch(API_BASE + '/api/plan/download', {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: planName || document.getElementById('biz-name').value || 'BusinessPlan', plan: planText })
+    });
+    if(!res.ok){ alert('Download failed.'); return; }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (planName || 'BusinessPlan').replace(/\s+/g,'_') + '_BusinessPlan.doc';
+    a.click();
+  }catch(e){ alert('Download failed: backend not reachable.'); }
+}
+
+// ---- Plan preview / edit / PDF export ---------------------------------------
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderMarkdown(md){
+  const lines = md.split(/\r?\n/);
+  let html = '', inList = false;
+  const flushList = () => { if(inList){ html += '</ul>'; inList = false; } };
+  const inline = (t) => escapeHtml(t)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*(?!\*)([^*]+)\*(?!\*)/g,'$1<em>$2</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>');
+
+  for(const raw of lines){
+    const line = raw.replace(/\s+$/,'');
+    if(!line.trim()){ flushList(); continue; }
+    if(line.startsWith('### ')){ flushList(); html += '<h3>'+inline(line.slice(4))+'</h3>'; continue; }
+    if(line.startsWith('## ')){ flushList(); html += '<h2>'+inline(line.slice(3))+'</h2>'; continue; }
+    if(line.startsWith('# ')){ flushList(); html += '<h1>'+inline(line.slice(2))+'</h1>'; continue; }
+    const numHead = line.match(/^(\d{1,2})\.\s+([A-Z][^\n]{2,80})$/);
+    if(numHead && numHead[2].split(' ').length <= 8){ flushList(); html += '<h2>'+inline(line)+'</h2>'; continue; }
+    const bullet = line.match(/^\s*[-*•]\s+(.*)$/);
+    if(bullet){
+      if(!inList){ html += '<ul>'; inList = true; }
+      html += '<li>'+inline(bullet[1])+'</li>';
+      continue;
+    }
+    flushList();
+    html += '<p>'+inline(line)+'</p>';
+  }
+  flushList();
+  return html;
+}
+
+function renderPreview(){
+  document.getElementById('plan-preview').innerHTML = renderMarkdown(planText || '');
+}
+
+function setPlanTab(tab){
+  const preview = document.getElementById('plan-preview');
+  const editor = document.getElementById('plan-editor');
+  const tp = document.getElementById('tab-preview');
+  const te = document.getElementById('tab-edit');
+  if(tab === 'edit'){
+    preview.style.display = 'none';
+    editor.style.display = 'block';
+    tp.classList.remove('active'); te.classList.add('active');
+    editor.focus();
+  } else {
+    planText = editor.value;
+    renderPreview();
+    preview.style.display = 'block';
+    editor.style.display = 'none';
+    te.classList.remove('active'); tp.classList.add('active');
+  }
+}
+
+function onEditorInput(){
+  planText = document.getElementById('plan-editor').value;
+  document.getElementById('edit-status').textContent = 'Edited · '+planText.length+' chars';
+}
+
+async function exportPdf(){
+  // Sync any unsaved edits
+  const editor = document.getElementById('plan-editor');
+  if(editor.style.display !== 'none'){ planText = editor.value; }
+  if(!planText || !planText.trim()){ alert('Nothing to export yet.'); return; }
+  const btn = document.getElementById('pdf-btn');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Building PDF...';
+  try{
+    const res = await fetch(API_BASE + '/api/plan/pdf', {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: planName || document.getElementById('biz-name').value || 'BusinessPlan', plan: planText })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({error:'PDF failed'}));
+      alert('PDF export failed: ' + (err.error || res.status));
+      return;
+    }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (planName || 'BusinessPlan').replace(/\s+/g,'_') + '_BusinessPlan.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  }catch(e){
+    alert('PDF export failed: backend not reachable.');
+  }finally{
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+function buildSteps(){
+  const list=document.getElementById('steps-list');
+  list.innerHTML=registrationSteps.map((s,i)=>`
+    <div class="step-item" onclick="toggleStep(${i})">
+      <div class="step-num">${s.num}</div>
+      <div class="step-info" style="flex:1">
+        <h4>${s.title}</h4>
+        <p>${s.summary}</p>
+        <div class="step-detail" id="step-detail-${i}">${s.detail}<br/><br/><button class="fund-btn" style="margin-top:.5rem" onclick="event.stopPropagation();showView('chat');sendQuick('Tell me more about: ${s.title.replace(/'/g,"'")} when registering a company in South Africa')">Ask Nova more ↗</button></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleStep(i){
+  const target = document.getElementById('step-detail-'+i);
+  const isOpen = target.classList.contains('open');
+  document.querySelectorAll('.step-detail').forEach(d=>d.classList.remove('open'));
+  if(!isOpen) target.classList.add('open');
+}
+
+function buildFunding(){
+  const wrap = document.getElementById('funding-content');
+  const cards = fundingOptions.map(f=>`
+    <div class="fund-card">
+      <div class="fund-card-header">
+        <h3>${f.name}</h3>
+        <span class="fund-badge ${f.badge}">${f.type}</span>
+      </div>
+      <div class="fund-meta">
+        <span>💵 ${f.amount}</span>
+        <span>📊 ${f.interest}</span>
+        <span>🎯 ${f.target}</span>
+      </div>
+      <div class="fund-desc">${f.desc}</div>
+      <button class="fund-btn" onclick="showView('chat');sendQuick('Tell me more about ${f.name.replace(/'/g,"\\'")} and how to apply.')">Ask Nova about this →</button>
+    </div>
+  `).join('');
+  wrap.insertAdjacentHTML('beforeend', cards);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', ()=>{
+  buildSteps();
+  buildFunding();
+  initAuth();
+});
+
+async function initAuth(){
+  try{
+    const res = await fetch(API_BASE + '/api/auth/me', { credentials:'include' });
+    const data = await res.json();
+    if(!data.authenticated){
+      window.location.href = '/login';
+      return;
+    }
+    const u = data.user || {};
+    const label = (u.first_name ? (u.first_name + (u.last_name ? ' '+u.last_name : '')) : (u.email || 'Signed in'));
+    document.getElementById('user-pill').textContent = label;
+  }catch(e){
+    window.location.href = '/login';
+  }
+}
+
+async function logout(){
+  try{
+    await fetch(API_BASE + '/api/auth/logout', { method:'POST', credentials:'include' });
+  }catch(e){}
+  window.location.href = '/login';
+}
+</script>
+
+<footer style="background:var(--green);color:rgba(255,255,255,0.7);text-align:center;padding:1.25rem 1rem;font-size:12.5px;margin-top:auto">
+  <div style="font-family:'Playfair Display',serif;color:var(--gold);font-weight:700;font-size:14px;margin-bottom:.25rem">Plan it. Register it. BizNova it.</div>
+  © 2026 BizNova · Built for SA entrepreneurs
+</footer>
+
+</body>
+</html>
