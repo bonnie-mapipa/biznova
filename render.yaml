@@ -8,17 +8,11 @@ services:
     startCommand: gunicorn app:app --workers 2 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT
     healthCheckPath: /api/health
     autoDeploy: true
-    disk:
-      name: biznova-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.5
       - key: FLASK_ENV
         value: production
-      - key: BIZNOVA_DB_PATH
-        value: /var/data/biznova.db
       - key: FLASK_SECRET_KEY
         generateValue: true
       - key: OPENAI_API_KEY
