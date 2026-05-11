@@ -131,6 +131,8 @@ def send_otp_email(to_email: str, otp: str) -> None:
             headers={
                 "Authorization": f"Bearer {RESEND_API_KEY}",
                 "Content-Type": "application/json",
+                "User-Agent": "BizNova/1.0 (+https://biznova.onrender.com)",
+                "Accept": "application/json",
             },
             method="POST",
         )
