@@ -537,20 +537,27 @@ def generate_logo():
     industry = (body.get("industry") or "").strip()
     idea = (body.get("idea") or "").strip()
     style = (body.get("style") or "modern").strip().lower()
+    user_prompt = (body.get("prompt") or "").strip()
     if not name:
         return jsonify({"error": "Business name is required."}), 400
 
     style_hint = LOGO_STYLE_HINTS.get(style, LOGO_STYLE_HINTS["modern"])
-    prompt = (
-        f"A professional business logo for a South African company called \"{name}\". "
-        f"Style: {style_hint}. "
-        f"Industry: {industry or 'general business'}. "
-        f"Concept: {idea or name}. "
+    prompt_parts = [
+        f'A professional business logo for a South African company called "{name}".',
+        f"Style: {style_hint}.",
+        f"Industry: {industry or 'general business'}.",
+    ]
+    if user_prompt:
+        prompt_parts.append(f"User direction: {user_prompt}")
+    elif idea:
+        prompt_parts.append(f"Concept: {idea}")
+    prompt_parts.append(
         "The logo should be a clean vector-style mark on a plain white background, "
         "centred, balanced composition, suitable for use on business cards, websites and signage. "
         "Include the company name as part of the logo in clear, legible typography. "
         "No mock-ups, no extra text, no watermarks, no photographs."
     )
+    prompt = " ".join(prompt_parts)
 
     try:
         result = client.images.generate(

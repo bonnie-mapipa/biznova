@@ -420,7 +420,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
       </div>
       <div style="font-size:12.5px;color:var(--ink-60);margin-bottom:.85rem">Generate a unique business logo with AI based on your business name and idea.</div>
 
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.85rem">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.6rem">
         <label for="logo-style" style="font-size:12.5px;color:var(--ink-60);font-weight:500">Style:</label>
         <select id="logo-style" style="padding:8px 10px;border:1.5px solid var(--ink-20);border-radius:8px;background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
           <option value="modern">Modern · Minimalist</option>
@@ -430,6 +430,15 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
           <option value="tech">Tech · Futuristic</option>
           <option value="earthy">Earthy · African-inspired</option>
         </select>
+      </div>
+
+      <div style="margin-bottom:.85rem">
+        <label for="logo-prompt" style="display:block;font-size:12.5px;color:var(--ink-60);font-weight:500;margin-bottom:5px">Describe your logo <span style="color:var(--ink-60);font-weight:400">(optional)</span></label>
+        <textarea id="logo-prompt" rows="3" placeholder="e.g. A coffee bean shaped like an African baobab tree, warm brown and gold colours, with the business name in a bold serif font" style="width:100%;padding:10px 12px;border:1.5px solid var(--ink-20);border-radius:8px;background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.5;outline:none;resize:vertical"></textarea>
+        <div style="font-size:11.5px;color:var(--ink-60);margin-top:4px">Mention colours, symbols, mood, fonts — anything that matters. Leave blank to let AI decide based on your business idea.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.5rem">
         <button class="btn-green" onclick="generateLogo()" id="logo-btn" style="font-size:13px;padding:8px 18px">✦ Generate Logo</button>
         <span class="status-msg" id="logo-status" style="font-size:12px;color:var(--ink-60)"></span>
       </div>
@@ -677,6 +686,7 @@ async function generateLogo(){
     return;
   }
   const style = document.getElementById('logo-style').value;
+  const userPrompt = document.getElementById('logo-prompt').value.trim();
   const btn = document.getElementById('logo-btn');
   const status = document.getElementById('logo-status');
   btn.disabled = true; btn.textContent = '✦ Designing...';
@@ -691,7 +701,8 @@ async function generateLogo(){
         name,
         industry: document.getElementById('biz-industry').value,
         idea: document.getElementById('biz-idea').value,
-        style
+        style,
+        prompt: userPrompt
       })
     });
     const data = await res.json();
