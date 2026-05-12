@@ -417,7 +417,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
       <button class="btn-green" onclick="exportPdf()" id="pdf-btn" style="font-size:13px;padding:8px 18px">Export as PDF</button>
       <button class="btn" onclick="downloadPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Download as Word</button>
       <button class="btn" onclick="copyPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Copy</button>
-      <button class="btn" onclick="refinePlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Refine with AI</button>
+      <button class="btn" id="refine-btn" onclick="refinePlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Refine with AI</button>
     </div>
 
     </div>
@@ -728,7 +728,7 @@ async function refinePlan(){
     if(s){ s.textContent = 'Generate a plan first.'; setTimeout(()=>{ s.textContent=''; }, 2500); }
     return;
   }
-  const btn = event && event.target ? event.target : null;
+  const btn = document.getElementById('refine-btn');
   const originalLabel = btn ? btn.textContent : '';
   if(btn){ btn.disabled = true; btn.textContent = 'Refining...'; }
   const status = document.getElementById('edit-status');
