@@ -250,20 +250,20 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     <h1>Register your business<br/>the <em>smart way</em></h1>
     <p>BizNova generates AI-powered business plans, guides you through CIPC registration, and connects you with the funding you need — all in one place.</p>
     <div class="hero-btns">
-      <button class="btn btn-gold" onclick="showView('plan')">✦ Build my business plan</button>
+      <button class="btn btn-gold" onclick="showView('plan')">Build my business plan</button>
       <button class="btn btn-outline" onclick="showView('chat')">Chat with AI Assistant</button>
     </div>
   </div>
   <div class="section-title">BizNova helps you launch smarter, faster.</div>
   <div class="cards-grid">
     <div class="card" onclick="showView('plan')">
-      <div class="card-icon" style="background:#E8F5EE">📄</div>
+      <div class="card-icon" style="background:#E8F5EE"></div>
       <h3>Business Plan</h3>
       <p>AI-generated professional plan tailored to your business idea and industry.</p>
       <div class="card-arrow">Get started →</div>
     </div>
     <div class="card" onclick="showView('chat')">
-      <div class="card-icon" style="background:#FFF8E8">🤖</div>
+      <div class="card-icon" style="background:#FFF8E8"></div>
       <h3>AI Assistant</h3>
       <p>Ask any question about starting, running, or growing your business in SA.</p>
       <div class="card-arrow">Chat now →</div>
@@ -275,7 +275,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
       <div class="card-arrow">View steps →</div>
     </div>
     <div class="card" onclick="showView('funding')">
-      <div class="card-icon" style="background:#FEF0F0">💰</div>
+      <div class="card-icon" style="background:#FEF0F0"></div>
       <h3>Funding Options</h3>
       <p>Explore loans, grants, and investors available to South African entrepreneurs.</p>
       <div class="card-arrow">Explore →</div>
@@ -286,7 +286,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     <div class="card"><div style="font-size:22px;margin-bottom:.6rem">🇿🇦</div><h3>SA-focused</h3><p>All guidance tailored to South African law, CIPC, and local funding sources.</p></div>
     <div class="card"><div style="font-size:22px;margin-bottom:.6rem">🌍</div><h3>Plain language</h3><p>Complex regulations translated into simple, actionable steps you can follow.</p></div>
     <div class="card"><div style="font-size:22px;margin-bottom:.6rem">⚡</div><h3>AI-powered</h3><p>Claude Sonnet generates personalised content based on your specific business.</p></div>
-    <div class="card"><div style="font-size:22px;margin-bottom:.6rem">📥</div><h3>Downloadable</h3><p>Export your business plan as a professional Word document ready to share.</p></div>
+    <div class="card"><h3>Downloadable</h3><p>Export your business plan as a professional Word document ready to share.</p></div>
   </div>
 </div>
 
@@ -304,9 +304,9 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     </div>
     <div class="mode-pills">
       <button class="pill active" onclick="setMode(this,'general')">💬 General</button>
-      <button class="pill" onclick="setMode(this,'business-plan')">📄 Business Plan</button>
+      <button class="pill" onclick="setMode(this,'business-plan')">Business Plan</button>
       <button class="pill" onclick="setMode(this,'legal')">⚖️ Legal & CIPC</button>
-      <button class="pill" onclick="setMode(this,'funding')">💰 Funding</button>
+      <button class="pill" onclick="setMode(this,'funding')">Funding</button>
       <button class="pill" onclick="setMode(this,'compliance')">✅ Compliance</button>
     </div>
     <div class="quick-prompts">
@@ -317,7 +317,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     </div>
     <div class="messages" id="messages">
       <div class="msg ai">
-        <div class="ai-badge">✦ Nova AI</div>
+        <div class="ai-badge">Nova AI</div>
         <div class="msg-bubble">Hello! I'm Nova, your BizNova AI business assistant. 👋<br/><br/>I can help you with:<br/>• Writing and refining your business plan<br/>• Understanding CIPC registration steps<br/>• Finding funding and loan options in SA<br/>• Tax and compliance guidance<br/>• Any business question you have<br/><br/>What would you like to work on today?</div>
         <div class="msg-time">Just now</div>
       </div>
@@ -390,15 +390,15 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     </div>
   </div>
   <div class="generate-bar">
-    <button class="btn-green" onclick="generatePlan()" id="gen-btn">✦ Generate Business Plan</button>
+    <button class="btn-green" onclick="generatePlan()" id="gen-btn">Generate Business Plan</button>
     <span class="status-msg" id="gen-status"></span>
   </div>
   <div class="output-panel" id="plan-output">
     <div class="output-title" id="plan-output-title"></div>
 
     <div class="plan-toolbar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.85rem;border-bottom:1px solid var(--ink-20);padding-bottom:.85rem">
-      <button class="pill active" id="tab-preview" onclick="setPlanTab('preview')">👁 Preview</button>
-      <button class="pill" id="tab-edit" onclick="setPlanTab('edit')">✏️ Edit</button>
+      <button class="pill active" id="tab-preview" onclick="setPlanTab('preview')">Preview</button>
+      <button class="pill" id="tab-edit" onclick="setPlanTab('edit')">Edit</button>
       <span style="flex:1"></span>
       <span class="status-msg" id="edit-status" style="font-size:12px;color:var(--ink-60);align-self:center"></span>
     </div>
@@ -407,16 +407,15 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     <textarea id="plan-editor" class="plan-pane" style="display:none;width:100%;min-height:480px;padding:14px;border:1.5px solid var(--ink-20);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.7;background:var(--paper);outline:none;resize:vertical" oninput="onEditorInput()"></textarea>
 
     <div class="output-actions">
-      <button class="btn-green" onclick="exportPdf()" id="pdf-btn" style="font-size:13px;padding:8px 18px">📄 Export as PDF</button>
-      <button class="btn" onclick="downloadPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">📝 Download as Word</button>
-      <button class="btn" onclick="copyPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">📋 Copy</button>
-      <button class="btn" onclick="refinePlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">🔄 Refine with AI</button>
+      <button class="btn-green" onclick="exportPdf()" id="pdf-btn" style="font-size:13px;padding:8px 18px">Export as PDF</button>
+      <button class="btn" onclick="downloadPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Download as Word</button>
+      <button class="btn" onclick="copyPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Copy</button>
+      <button class="btn" onclick="refinePlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Refine with AI</button>
     </div>
 
     <!-- LOGO GENERATOR -->
     <div id="logo-card" style="margin-top:1.5rem;padding:1.1rem 1.2rem;background:var(--paper);border:1px solid var(--ink-20);border-radius:14px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
-        <span style="font-size:1.05rem">🎨</span>
         <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;color:var(--ink)">AI Logo Designer</div>
       </div>
       <div style="font-size:12.5px;color:var(--ink-60);margin-bottom:.85rem">Generate a unique business logo with AI based on your business name and idea.</div>
@@ -440,7 +439,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
       </div>
 
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.5rem">
-        <button class="btn-green" onclick="generateLogo()" id="logo-btn" style="font-size:13px;padding:8px 18px">✦ Generate Logo</button>
+        <button class="btn-green" onclick="generateLogo()" id="logo-btn" style="font-size:13px;padding:8px 18px">Generate Logo</button>
         <span class="status-msg" id="logo-status" style="font-size:12px;color:var(--ink-60)"></span>
       </div>
 
@@ -449,8 +448,8 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
           <img id="logo-img" alt="Generated logo" style="max-width:100%;max-height:340px;display:block"/>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem">
-          <button class="btn-green" onclick="downloadLogo()" style="font-size:13px;padding:8px 18px">⬇ Download PNG</button>
-          <button class="btn" onclick="generateLogo()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">🔄 Try another</button>
+          <button class="btn-green" onclick="downloadLogo()" style="font-size:13px;padding:8px 18px">Download PNG</button>
+          <button class="btn" onclick="generateLogo()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Try another</button>
         </div>
       </div>
     </div>
@@ -466,7 +465,6 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
   <div style="padding:1.5rem 2rem;max-width:1100px">
     <div style="margin-bottom:2rem">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
-        <span style="font-size:1.1rem">📄</span>
         <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--ink);margin:0">Business Plans</h3>
         <span id="plans-count" style="font-size:12px;color:var(--ink-60);background:var(--paper);padding:2px 8px;border-radius:10px">0</span>
       </div>
@@ -474,7 +472,6 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     </div>
     <div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
-        <span style="font-size:1.1rem">🎨</span>
         <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--ink);margin:0">Logos</h3>
         <span id="logos-count" style="font-size:12px;color:var(--ink-60);background:var(--paper);padding:2px 8px;border-radius:10px">0</span>
       </div>
@@ -491,14 +488,14 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
   </div>
   <div class="legal-wrap">
     <div class="disclaimer">
-      ⚠️ <strong>Disclaimer:</strong> This is general guidance only and does not constitute legal advice. Requirements may change. Please verify current fees and procedures at <strong>cipc.co.za</strong> or consult a registered company secretary or attorney.
+      <strong>Disclaimer:</strong> This is general guidance only and does not constitute legal advice. Requirements may change. Please verify current fees and procedures at <strong>cipc.co.za</strong> or consult a registered company secretary or attorney.
     </div>
     <div style="font-size:13px;color:var(--ink-60);margin-bottom:1rem">Click any step to expand details and AI guidance</div>
     <div class="steps-list" id="steps-list">
       <!-- Steps inserted by JS -->
     </div>
     <div style="background:var(--green-light);border-radius:var(--radius);padding:1.1rem;margin-bottom:1.5rem">
-      <div style="font-size:13.5px;font-weight:600;color:var(--green);margin-bottom:.5rem">🤖 Ask Nova about registration</div>
+      <div style="font-size:13.5px;font-weight:600;color:var(--green);margin-bottom:.5rem">Ask Nova about registration</div>
       <div style="font-size:13px;color:var(--green-mid);margin-bottom:.75rem">Have a specific question about registering your company?</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="fund-btn" onclick="showView('chat');sendQuick('What is the difference between Pty Ltd and NPC in South Africa?')">Pty Ltd vs NPC?</button>
@@ -517,7 +514,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
   </div>
   <div class="funding-wrap" id="funding-content">
     <div class="disclaimer">
-      ⚠️ <strong>Disclaimer:</strong> Funding information is aggregated from public sources. Eligibility criteria and amounts may change. BizNova does not process loan applications or provide financial advice. Consult a qualified financial advisor.
+      <strong>Disclaimer:</strong> Funding information is aggregated from public sources. Eligibility criteria and amounts may change. BizNova does not process loan applications or provide financial advice. Consult a qualified financial advisor.
     </div>
     <!-- Inserted by JS -->
   </div>
@@ -582,7 +579,7 @@ function appendMsg(role, text) {
   div.className = 'msg '+role;
   const now = new Date();
   const time = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
-  div.innerHTML = (role==='ai'?'<div class="ai-badge">✦ Nova AI</div>':'')+
+  div.innerHTML = (role==='ai'?'<div class="ai-badge">Nova AI</div>':'')+
     '<div class="msg-bubble">'+text.replace(/\n/g,'<br/>')+'</div>'+
     '<div class="msg-time">'+time+'</div>';
   msgs.appendChild(div);
@@ -594,7 +591,7 @@ function showTyping() {
   const msgs = document.getElementById('messages');
   const div = document.createElement('div');
   div.className='msg ai';div.id='typing-indicator';
-  div.innerHTML='<div class="ai-badge">✦ Nova AI</div><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  div.innerHTML='<div class="ai-badge">Nova AI</div><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
   msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
 }
 
@@ -650,7 +647,7 @@ async function generatePlan() {
     return;
   }
   const btn=document.getElementById('gen-btn');
-  btn.disabled=true;btn.textContent='✦ Generating...';
+  btn.disabled=true;btn.textContent='Generating...';
   document.getElementById('gen-status').textContent='AI is writing your business plan...';
 
   const payload = {
@@ -677,7 +674,7 @@ async function generatePlan() {
     const data = await res.json();
     if(!res.ok){
       document.getElementById('gen-status').textContent = 'Error: ' + (data.error || 'Request failed.');
-      btn.disabled=false;btn.textContent='✦ Generate Business Plan';
+      btn.disabled=false;btn.textContent='Generate Business Plan';
       return;
     }
     planText = data.plan || 'Could not generate plan.';
@@ -690,11 +687,11 @@ async function generatePlan() {
     setPlanTab('preview');
     out.classList.add('visible');
     out.scrollIntoView({behavior:'smooth'});
-    document.getElementById('gen-status').textContent='✓ Plan generated. Preview & edit before exporting.';
+    document.getElementById('gen-status').textContent='Plan generated. Preview & edit before exporting.';
   } catch(e) {
     document.getElementById('gen-status').textContent='We couldn\u2019t reach the server. Please check your connection and try again.';
   }
-  btn.disabled=false;btn.textContent='✦ Regenerate Plan';
+  btn.disabled=false;btn.textContent='Regenerate Plan';
 }
 
 function copyPlan(){
@@ -702,7 +699,7 @@ function copyPlan(){
   if(editor && editor.style.display !== 'none'){ planText = editor.value; }
   navigator.clipboard.writeText(planText);
   const s = document.getElementById('edit-status');
-  if(s){ s.textContent = '✓ Copied to clipboard'; setTimeout(()=>{ s.textContent=''; }, 2000); }
+  if(s){ s.textContent = 'Copied to clipboard'; setTimeout(()=>{ s.textContent=''; }, 2000); }
 }
 function refinePlan(){sendQuick('Please refine and improve this business plan section by section, making it more professional and detailed:\n\n'+planText.slice(0,800)+'...');}
 
@@ -719,7 +716,7 @@ async function generateLogo(){
   const userPrompt = document.getElementById('logo-prompt').value.trim();
   const btn = document.getElementById('logo-btn');
   const status = document.getElementById('logo-status');
-  btn.disabled = true; btn.textContent = '✦ Designing...';
+  btn.disabled = true; btn.textContent = 'Designing...';
   status.textContent = 'AI is designing your logo (this can take 15–30 seconds)...';
 
   try{
@@ -745,11 +742,11 @@ async function generateLogo(){
     logoFilename = data.filename || 'logo.png';
     document.getElementById('logo-img').src = logoDataUrl;
     document.getElementById('logo-preview').style.display = 'block';
-    status.textContent = '✓ Logo ready.';
+    status.textContent = 'Logo ready.';
   }catch(e){
     status.textContent = 'Connection error. Try again.';
   }
-  btn.disabled = false; btn.textContent = '✦ Generate Logo';
+  btn.disabled = false; btn.textContent = 'Generate Logo';
 }
 
 function downloadLogo(){
@@ -830,8 +827,8 @@ function renderLogosGrid(logos){
       <div style="font-weight:600;font-size:13px;color:var(--ink);line-height:1.3">${escapeHtml(l.name)}</div>
       <div style="font-size:11.5px;color:var(--ink-60)">${escapeHtml(l.style || 'modern')} · ${fmtDate(l.created_at)}</div>
       <div style="display:flex;gap:6px">
-        <button onclick="downloadLogoFromLibrary(${l.id})" class="btn-green" style="flex:1;font-size:12px;padding:6px 10px;border-radius:30px;border:none;cursor:pointer;color:#fff">⬇ PNG</button>
-        <button onclick="deleteLogoFromLibrary(${l.id})" style="font-size:12px;padding:6px 10px;border-radius:30px;border:1px solid var(--ink-20);background:var(--paper);color:var(--red);cursor:pointer">✕</button>
+        <button onclick="downloadLogoFromLibrary(${l.id})" class="btn-green" style="flex:1;font-size:12px;padding:6px 10px;border-radius:30px;border:none;cursor:pointer;color:#fff">Download</button>
+        <button onclick="deleteLogoFromLibrary(${l.id})" style="font-size:12px;padding:6px 10px;border-radius:30px;border:1px solid var(--ink-20);background:var(--paper);color:var(--red);cursor:pointer">Delete</button>
       </div>
     </div>
   `).join('');
@@ -1008,7 +1005,7 @@ function scheduleAutoSave(){
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ name: planName, content: planText })
       });
-      if(res.ok){ status.textContent = '✓ Saved to library'; }
+      if(res.ok){ status.textContent = 'Saved to library'; }
     }catch(e){ /* ignore */ }
   }, 1500);
 }
@@ -1020,7 +1017,7 @@ async function exportPdf(){
   if(!planText || !planText.trim()){ alert('Nothing to export yet.'); return; }
   const btn = document.getElementById('pdf-btn');
   const original = btn.textContent;
-  btn.disabled = true; btn.textContent = '⏳ Building PDF...';
+  btn.disabled = true; btn.textContent = 'Building PDF...';
   try{
     const res = await fetch(API_BASE + '/api/plan/pdf', {
       method:'POST',
@@ -1077,7 +1074,7 @@ function buildFunding(){
       </div>
       <div class="fund-meta">
         <span>💵 ${f.amount}</span>
-        <span>📊 ${f.interest}</span>
+        <span>${f.interest}</span>
         <span>🎯 ${f.target}</span>
       </div>
       <div class="fund-desc">${f.desc}</div>
