@@ -628,7 +628,7 @@ async function sendMessage() {
     appendMsg('ai', reply);
   } catch(e) {
     removeTyping();
-    appendMsg('ai','Sorry, there was a connection error. Make sure the Python backend is running (python app.py).');
+    appendMsg('ai','Sorry, I couldn\u2019t reach the server. Please check your internet connection and try again in a moment.');
     chatHistory.pop();
   }
 }
@@ -692,7 +692,7 @@ async function generatePlan() {
     out.scrollIntoView({behavior:'smooth'});
     document.getElementById('gen-status').textContent='✓ Plan generated. Preview & edit before exporting.';
   } catch(e) {
-    document.getElementById('gen-status').textContent='Connection error. Is the Python backend running?';
+    document.getElementById('gen-status').textContent='We couldn\u2019t reach the server. Please check your connection and try again.';
   }
   btn.disabled=false;btn.textContent='✦ Regenerate Plan';
 }
