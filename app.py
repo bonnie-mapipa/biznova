@@ -490,6 +490,48 @@ Include practical, actionable content. Use clear section headings."""
     return jsonify({"plan": plan, "name": name, "id": plan_id})
 
 
+@app.route("/api/plan/refine", methods=["POST"])
+@login_required
+def refine_plan():
+    body = request.get_json(silent=True) or {}
+    current = (body.get("plan") or "").strip()
+    plan_id = body.get("id")
+    if not current:
+        return jsonify({"error": "plan content is required"}), 400
+
+    prompt = (
+        "Refine and improve the following business plan. Strengthen weak sections, "
+        "tighten the language, add concrete South African context where helpful, and "
+        "make figures and claims more specific and credible. Keep the same overall "
+        "section structure and headings. Return only the refined plan in Markdown.\n\n"
+        "--- CURRENT PLAN ---\n"
+        f"{current}\n"
+        "--- END OF PLAN ---"
+    )
+    try:
+        refined = call_openai(
+            [{"role": "user", "content": prompt}],
+            SYSTEM_PROMPTS["business-plan"],
+            max_tokens=3500,
+        )
+    except OpenAIError as e:
+        return jsonify({"error": f"OpenAI error: {e}"}), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    if plan_id:
+        try:
+            now = datetime.now(UTC).isoformat()
+            with get_db() as conn:
+                conn.execute(
+                    "UPDATE plans SET content=?, updated_at=? WHERE id=? AND user_id=?",
+                    (refined, now, int(plan_id), session["user_id"]),
+                )
+        except Exception:
+            pass
+    return jsonify({"plan": refined, "id": plan_id})
+
+
 @app.route("/api/plan/download", methods=["POST"])
 @login_required
 def download_plan():
