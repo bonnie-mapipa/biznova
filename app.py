@@ -73,6 +73,28 @@ def init_db():
             last_name TEXT,
             created_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_plans_user ON plans(user_id, updated_at DESC);
+        CREATE TABLE IF NOT EXISTS logos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            style TEXT,
+            prompt TEXT,
+            image_b64 TEXT NOT NULL,
+            mime TEXT NOT NULL DEFAULT 'image/png',
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_logos_user ON logos(user_id, created_at DESC);
         DROP TABLE IF EXISTS otps;
         """)
 
@@ -335,7 +357,16 @@ Include practical, actionable content. Use clear section headings."""
         return jsonify({"error": f"OpenAI error: {e}"}), 502
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    return jsonify({"plan": plan, "name": name})
+
+    # Auto-save to user's library
+    now = datetime.now(UTC).isoformat()
+    with get_db() as conn:
+        cur = conn.execute(
+            "INSERT INTO plans(user_id, name, content, created_at, updated_at) VALUES(?,?,?,?,?)",
+            (session["user_id"], name, plan, now, now),
+        )
+        plan_id = cur.lastrowid
+    return jsonify({"plan": plan, "name": name, "id": plan_id})
 
 
 @app.route("/api/plan/download", methods=["POST"])
@@ -574,13 +605,119 @@ def generate_logo():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+    # Auto-save to user's library
+    now = datetime.now(UTC).isoformat()
+    with get_db() as conn:
+        cur = conn.execute(
+            "INSERT INTO logos(user_id, name, style, prompt, image_b64, mime, created_at) VALUES(?,?,?,?,?,?,?)",
+            (session["user_id"], name, style, user_prompt or idea, b64, "image/png", now),
+        )
+        logo_id = cur.lastrowid
+
     return jsonify({
         "ok": True,
+        "id": logo_id,
         "image_b64": b64,
         "mime": "image/png",
         "style": style,
         "filename": f"{_safe_filename(name)}_logo.png",
     })
+
+
+# ---- Library / Dashboard ---------------------------------------------------
+
+@app.route("/api/plans", methods=["GET"])
+@login_required
+def list_plans():
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, name, substr(content,1,200) AS preview, created_at, updated_at "
+            "FROM plans WHERE user_id=? ORDER BY updated_at DESC",
+            (session["user_id"],),
+        ).fetchall()
+    return jsonify({"plans": [dict(r) for r in rows]})
+
+
+@app.route("/api/plans/<int:plan_id>", methods=["GET"])
+@login_required
+def get_plan(plan_id):
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, name, content, created_at, updated_at FROM plans WHERE id=? AND user_id=?",
+            (plan_id, session["user_id"]),
+        ).fetchone()
+    if not row:
+        return jsonify({"error": "Plan not found."}), 404
+    return jsonify(dict(row))
+
+
+@app.route("/api/plans/<int:plan_id>", methods=["PUT"])
+@login_required
+def update_plan(plan_id):
+    body = request.get_json(silent=True) or {}
+    name = (body.get("name") or "").strip()
+    content = body.get("content") or ""
+    if not name or not content.strip():
+        return jsonify({"error": "Name and content are required."}), 400
+    now = datetime.now(UTC).isoformat()
+    with get_db() as conn:
+        cur = conn.execute(
+            "UPDATE plans SET name=?, content=?, updated_at=? WHERE id=? AND user_id=?",
+            (name, content, now, plan_id, session["user_id"]),
+        )
+        if cur.rowcount == 0:
+            return jsonify({"error": "Plan not found."}), 404
+    return jsonify({"ok": True, "updated_at": now})
+
+
+@app.route("/api/plans/<int:plan_id>", methods=["DELETE"])
+@login_required
+def delete_plan(plan_id):
+    with get_db() as conn:
+        cur = conn.execute(
+            "DELETE FROM plans WHERE id=? AND user_id=?",
+            (plan_id, session["user_id"]),
+        )
+        if cur.rowcount == 0:
+            return jsonify({"error": "Plan not found."}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/logos", methods=["GET"])
+@login_required
+def list_logos():
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, name, style, prompt, created_at FROM logos WHERE user_id=? ORDER BY created_at DESC",
+            (session["user_id"],),
+        ).fetchall()
+    return jsonify({"logos": [dict(r) for r in rows]})
+
+
+@app.route("/api/logos/<int:logo_id>", methods=["GET"])
+@login_required
+def get_logo(logo_id):
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT id, name, style, prompt, image_b64, mime, created_at FROM logos WHERE id=? AND user_id=?",
+            (logo_id, session["user_id"]),
+        ).fetchone()
+    if not row:
+        return jsonify({"error": "Logo not found."}), 404
+    return jsonify(dict(row))
+
+
+@app.route("/api/logos/<int:logo_id>", methods=["DELETE"])
+@login_required
+def delete_logo(logo_id):
+    with get_db() as conn:
+        cur = conn.execute(
+            "DELETE FROM logos WHERE id=? AND user_id=?",
+            (logo_id, session["user_id"]),
+        )
+        if cur.rowcount == 0:
+            return jsonify({"error": "Logo not found."}), 404
+    return jsonify({"ok": True})
 
 
 # Initialise DB at import time so gunicorn/wsgi workers also create tables.

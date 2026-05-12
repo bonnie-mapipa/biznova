@@ -234,6 +234,7 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
     <button class="nav-tab active" onclick="showView('home')">Home</button>
     <button class="nav-tab" onclick="showView('chat')">AI Assistant</button>
     <button class="nav-tab" onclick="showView('plan')">Business Plan</button>
+    <button class="nav-tab" onclick="showView('dashboard')">My Library</button>
     <button class="nav-tab" onclick="showView('legal')">Registration</button>
     <button class="nav-tab" onclick="showView('funding')">Funding</button>
   </div>
@@ -456,6 +457,32 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
   </div>
 </div>
 
+<!-- DASHBOARD / LIBRARY VIEW -->
+<div id="view-dashboard" class="view">
+  <div style="padding:1.25rem 2rem .5rem;background:var(--surface);border-bottom:1px solid var(--ink-20)">
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700">My Library</div>
+    <div style="font-size:12.5px;color:var(--ink-60)">All your generated business plans and logos. Saved automatically.</div>
+  </div>
+  <div style="padding:1.5rem 2rem;max-width:1100px">
+    <div style="margin-bottom:2rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
+        <span style="font-size:1.1rem">📄</span>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--ink);margin:0">Business Plans</h3>
+        <span id="plans-count" style="font-size:12px;color:var(--ink-60);background:var(--paper);padding:2px 8px;border-radius:10px">0</span>
+      </div>
+      <div id="plans-list" style="display:grid;gap:10px"></div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
+        <span style="font-size:1.1rem">🎨</span>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--ink);margin:0">Logos</h3>
+        <span id="logos-count" style="font-size:12px;color:var(--ink-60);background:var(--paper);padding:2px 8px;border-radius:10px">0</span>
+      </div>
+      <div id="logos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px"></div>
+    </div>
+  </div>
+</div>
+
 <!-- LEGAL VIEW -->
 <div id="view-legal" class="view">
   <div style="padding:1.25rem 2rem .5rem;background:var(--surface);border-bottom:1px solid var(--ink-20)">
@@ -501,6 +528,7 @@ const API_BASE = location.origin.startsWith('http') ? '' : 'http://localhost:500
 let chatMode = "general";
 let planText = "";
 let planName = "";
+let planId = null;
 let chatHistory = [];
 
 const registrationSteps = [
@@ -526,10 +554,11 @@ const fundingOptions = [
 function showView(id) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach((t,i)=>{
-    const ids=['home','chat','plan','legal','funding'];
+    const ids=['home','chat','plan','dashboard','legal','funding'];
     t.classList.toggle('active', ids[i]===id);
   });
   document.getElementById('view-'+id).classList.add('active');
+  if(id==='dashboard') loadLibrary();
 }
 
 function setMode(el, mode) {
@@ -653,6 +682,7 @@ async function generatePlan() {
     }
     planText = data.plan || 'Could not generate plan.';
     planName = data.name || name;
+    planId = data.id || null;
     const out = document.getElementById('plan-output');
     document.getElementById('plan-output-title').textContent=planName+' — Business Plan';
     document.getElementById('plan-editor').value = planText;
@@ -728,6 +758,160 @@ function downloadLogo(){
   a.href = logoDataUrl;
   a.download = logoFilename;
   document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ---- Library / Dashboard ----
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function fmtDate(iso){
+  if(!iso) return '';
+  try{
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }catch(e){ return iso; }
+}
+
+async function loadLibrary(){
+  const plansList = document.getElementById('plans-list');
+  const logosGrid = document.getElementById('logos-grid');
+  plansList.innerHTML = '<div style="color:var(--ink-60);font-size:13px">Loading...</div>';
+  logosGrid.innerHTML = '<div style="color:var(--ink-60);font-size:13px">Loading...</div>';
+  try{
+    const [pRes, lRes] = await Promise.all([
+      fetch(API_BASE + '/api/plans', { credentials:'include' }),
+      fetch(API_BASE + '/api/logos', { credentials:'include' })
+    ]);
+    if(pRes.status === 401 || lRes.status === 401){ window.location.href='/login'; return; }
+    const pData = await pRes.json();
+    const lData = await lRes.json();
+    renderPlansList(pData.plans || []);
+    renderLogosGrid(lData.logos || []);
+  }catch(e){
+    plansList.innerHTML = '<div style="color:var(--red);font-size:13px">Failed to load library.</div>';
+    logosGrid.innerHTML = '';
+  }
+}
+
+function renderPlansList(plans){
+  document.getElementById('plans-count').textContent = plans.length;
+  const list = document.getElementById('plans-list');
+  if(!plans.length){
+    list.innerHTML = '<div style="color:var(--ink-60);font-size:13px;background:var(--paper);padding:1rem;border-radius:10px;border:1px dashed var(--ink-20)">No business plans yet. Generate one in the <strong>Business Plan</strong> tab.</div>';
+    return;
+  }
+  list.innerHTML = plans.map(p => `
+    <div style="background:var(--surface);border:1px solid var(--ink-20);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:3px">${escapeHtml(p.name)}</div>
+        <div style="font-size:12px;color:var(--ink-60);margin-bottom:6px">Updated ${fmtDate(p.updated_at)}</div>
+        <div style="font-size:12.5px;color:var(--ink-60);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(p.preview || '')}…</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        <button class="btn-green" onclick="openPlanFromLibrary(${p.id})" style="font-size:12px;padding:6px 14px;border-radius:30px;border:none;cursor:pointer;color:#fff">Open</button>
+        <button onclick="downloadPlanFromLibrary(${p.id})" style="font-size:12px;padding:6px 14px;border-radius:30px;border:1px solid var(--ink-20);background:var(--paper);color:var(--ink);cursor:pointer">PDF</button>
+        <button onclick="deletePlanFromLibrary(${p.id})" style="font-size:12px;padding:6px 14px;border-radius:30px;border:1px solid var(--ink-20);background:var(--paper);color:var(--red);cursor:pointer">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLogosGrid(logos){
+  document.getElementById('logos-count').textContent = logos.length;
+  const grid = document.getElementById('logos-grid');
+  if(!logos.length){
+    grid.innerHTML = '<div style="color:var(--ink-60);font-size:13px;background:var(--paper);padding:1rem;border-radius:10px;border:1px dashed var(--ink-20);grid-column:1/-1">No logos yet. Generate one in the <strong>Business Plan</strong> tab after building a plan.</div>';
+    return;
+  }
+  grid.innerHTML = logos.map(l => `
+    <div style="background:var(--surface);border:1px solid var(--ink-20);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px">
+      <div id="logo-thumb-${l.id}" style="background:#fff;border:1px solid var(--ink-20);border-radius:8px;height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <div style="color:var(--ink-60);font-size:12px">Loading…</div>
+      </div>
+      <div style="font-weight:600;font-size:13px;color:var(--ink);line-height:1.3">${escapeHtml(l.name)}</div>
+      <div style="font-size:11.5px;color:var(--ink-60)">${escapeHtml(l.style || 'modern')} · ${fmtDate(l.created_at)}</div>
+      <div style="display:flex;gap:6px">
+        <button onclick="downloadLogoFromLibrary(${l.id})" class="btn-green" style="flex:1;font-size:12px;padding:6px 10px;border-radius:30px;border:none;cursor:pointer;color:#fff">⬇ PNG</button>
+        <button onclick="deleteLogoFromLibrary(${l.id})" style="font-size:12px;padding:6px 10px;border-radius:30px;border:1px solid var(--ink-20);background:var(--paper);color:var(--red);cursor:pointer">✕</button>
+      </div>
+    </div>
+  `).join('');
+  // Lazy-load thumbnails
+  logos.forEach(l => loadLogoThumb(l.id));
+}
+
+async function loadLogoThumb(id){
+  try{
+    const res = await fetch(API_BASE + '/api/logos/' + id, { credentials:'include' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const url = 'data:' + (data.mime || 'image/png') + ';base64,' + data.image_b64;
+    const el = document.getElementById('logo-thumb-' + id);
+    if(el) el.innerHTML = `<img src="${url}" alt="logo" style="max-width:100%;max-height:100%;object-fit:contain"/>`;
+  }catch(e){}
+}
+
+async function openPlanFromLibrary(id){
+  try{
+    const res = await fetch(API_BASE + '/api/plans/' + id, { credentials:'include' });
+    if(!res.ok) return alert('Could not load plan.');
+    const data = await res.json();
+    planText = data.content;
+    planName = data.name;
+    planId = data.id;
+    showView('plan');
+    setTimeout(()=>{
+      const out = document.getElementById('plan-output');
+      document.getElementById('plan-output-title').textContent = planName + ' — Business Plan';
+      document.getElementById('plan-editor').value = planText;
+      renderPreview();
+      setPlanTab('preview');
+      out.classList.add('visible');
+      out.scrollIntoView({behavior:'smooth'});
+    }, 80);
+  }catch(e){ alert('Failed to open plan.'); }
+}
+
+async function downloadPlanFromLibrary(id){
+  try{
+    const res = await fetch(API_BASE + '/api/plans/' + id, { credentials:'include' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const pdfRes = await fetch(API_BASE + '/api/plan/pdf', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: data.name, plan: data.content })
+    });
+    if(!pdfRes.ok) return alert('PDF export failed.');
+    const blob = await pdfRes.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = data.name.replace(/\s+/g,'_') + '_BusinessPlan.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ alert('Download failed.'); }
+}
+
+async function deletePlanFromLibrary(id){
+  if(!confirm('Delete this business plan? This cannot be undone.')) return;
+  const res = await fetch(API_BASE + '/api/plans/' + id, { method:'DELETE', credentials:'include' });
+  if(res.ok){ if(planId === id){ planId = null; } loadLibrary(); }
+}
+
+async function downloadLogoFromLibrary(id){
+  try{
+    const res = await fetch(API_BASE + '/api/logos/' + id, { credentials:'include' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const a = document.createElement('a');
+    a.href = 'data:' + (data.mime || 'image/png') + ';base64,' + data.image_b64;
+    a.download = (data.name || 'logo').replace(/\s+/g,'_') + '_logo.png';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){}
+}
+
+async function deleteLogoFromLibrary(id){
+  if(!confirm('Delete this logo? This cannot be undone.')) return;
+  const res = await fetch(API_BASE + '/api/logos/' + id, { method:'DELETE', credentials:'include' });
+  if(res.ok) loadLibrary();
 }
 
 async function downloadPlan(){
@@ -808,6 +992,25 @@ function setPlanTab(tab){
 function onEditorInput(){
   planText = document.getElementById('plan-editor').value;
   document.getElementById('edit-status').textContent = 'Edited · '+planText.length+' chars';
+  scheduleAutoSave();
+}
+
+let _autoSaveTimer = null;
+function scheduleAutoSave(){
+  if(!planId) return;
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(async ()=>{
+    const status = document.getElementById('edit-status');
+    try{
+      const res = await fetch(API_BASE + '/api/plans/' + planId, {
+        method:'PUT',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ name: planName, content: planText })
+      });
+      if(res.ok){ status.textContent = '✓ Saved to library'; }
+    }catch(e){ /* ignore */ }
+  }, 1500);
 }
 
 async function exportPdf(){
