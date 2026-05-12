@@ -496,14 +496,28 @@ def refine_plan():
     body = request.get_json(silent=True) or {}
     current = (body.get("plan") or "").strip()
     plan_id = body.get("id")
+    instructions = (body.get("instructions") or "").strip()
     if not current:
         return jsonify({"error": "plan content is required"}), 400
 
+    if instructions:
+        instr_block = (
+            "Apply ONLY the following user instructions to the plan. Make the requested "
+            "changes precisely; leave other sections untouched unless the user asks "
+            "otherwise. Keep the overall section structure and headings.\n\n"
+            f"USER INSTRUCTIONS:\n{instructions}\n"
+        )
+    else:
+        instr_block = (
+            "Refine and improve the plan overall. Strengthen weak sections, tighten the "
+            "language, add concrete South African context where helpful, and make figures "
+            "and claims more specific and credible. Keep the same overall section "
+            "structure and headings.\n"
+        )
+
     prompt = (
-        "Refine and improve the following business plan. Strengthen weak sections, "
-        "tighten the language, add concrete South African context where helpful, and "
-        "make figures and claims more specific and credible. Keep the same overall "
-        "section structure and headings. Return only the refined plan in Markdown.\n\n"
+        f"{instr_block}\n"
+        "Return only the full refined plan in Markdown (no preamble, no commentary).\n\n"
         "--- CURRENT PLAN ---\n"
         f"{current}\n"
         "--- END OF PLAN ---"

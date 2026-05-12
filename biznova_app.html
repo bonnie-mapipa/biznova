@@ -417,7 +417,20 @@ nav{background:var(--green);padding:0 2rem;display:flex;align-items:center;justi
       <button class="btn-green" onclick="exportPdf()" id="pdf-btn" style="font-size:13px;padding:8px 18px">Export as PDF</button>
       <button class="btn" onclick="downloadPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Download as Word</button>
       <button class="btn" onclick="copyPlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Copy</button>
-      <button class="btn" id="refine-btn" onclick="refinePlan()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Refine with AI</button>
+      <button class="btn" id="refine-btn" onclick="openRefinePanel()" style="background:var(--paper);border:1px solid var(--ink-20);color:var(--ink);font-size:13px;padding:8px 18px;border-radius:40px;cursor:pointer">Refine with AI</button>
+    </div>
+
+    <div id="refine-panel" style="display:none;margin-top:1rem;padding:1rem 1.1rem;background:var(--paper);border:1px solid var(--ink-20);border-radius:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.6rem">
+        <div style="font-weight:600;font-size:13.5px;color:var(--ink)">Tell AI what to refine</div>
+        <button onclick="closeRefinePanel()" style="background:none;border:none;color:var(--ink-60);cursor:pointer;font-size:13px">Cancel</button>
+      </div>
+      <textarea id="refine-input" rows="3" placeholder="e.g. Make the financial plan more detailed with specific ZAR figures, add a SWOT analysis to the market section, and shorten the executive summary." style="width:100%;padding:10px 12px;border:1.5px solid var(--ink-20);border-radius:8px;background:var(--surface);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.5;outline:none;resize:vertical"></textarea>
+      <div style="font-size:11.5px;color:var(--ink-60);margin-top:4px">Leave blank to let AI improve the plan overall.</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:.7rem;flex-wrap:wrap">
+        <button class="btn-green" id="refine-submit" onclick="submitRefine()" style="font-size:13px;padding:8px 18px">Apply Refinement</button>
+        <span id="refine-status" style="font-size:12px;color:var(--ink-60)"></span>
+      </div>
     </div>
 
     </div>
@@ -720,42 +733,63 @@ function copyPlan(){
   const s = document.getElementById('edit-status');
   if(s){ s.textContent = 'Copied to clipboard'; setTimeout(()=>{ s.textContent=''; }, 2000); }
 }
-async function refinePlan(){
-  const editor = document.getElementById('plan-editor');
-  if(editor && editor.style.display !== 'none'){ planText = editor.value; }
+function openRefinePanel(){
   if(!planText || !planText.trim()){
     const s = document.getElementById('edit-status');
     if(s){ s.textContent = 'Generate a plan first.'; setTimeout(()=>{ s.textContent=''; }, 2500); }
     return;
   }
-  const btn = document.getElementById('refine-btn');
-  const originalLabel = btn ? btn.textContent : '';
-  if(btn){ btn.disabled = true; btn.textContent = 'Refining...'; }
-  const status = document.getElementById('edit-status');
+  const panel = document.getElementById('refine-panel');
+  if(!panel) return;
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'center'});
+  const input = document.getElementById('refine-input');
+  if(input){ input.focus(); }
+}
+
+function closeRefinePanel(){
+  const panel = document.getElementById('refine-panel');
+  if(panel){ panel.style.display = 'none'; }
+  const status = document.getElementById('refine-status');
+  if(status){ status.textContent = ''; }
+}
+
+async function submitRefine(){
+  const editor = document.getElementById('plan-editor');
+  if(editor && editor.style.display !== 'none'){ planText = editor.value; }
+  if(!planText || !planText.trim()){ closeRefinePanel(); return; }
+  const instructions = (document.getElementById('refine-input').value || '').trim();
+  const submitBtn = document.getElementById('refine-submit');
+  const status = document.getElementById('refine-status');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Refining...'; }
   if(status){ status.textContent = 'AI is refining your plan...'; }
   try {
     const res = await fetch(API_BASE + '/api/plan/refine', {
       method:'POST',
       credentials:'include',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ plan: planText, id: planId || null })
+      body: JSON.stringify({ plan: planText, id: planId || null, instructions })
     });
     const data = await res.json();
     if(!res.ok){
       if(status){ status.textContent = 'Could not refine: ' + (data.error || 'try again.'); }
+      if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Apply Refinement'; }
       return;
     }
     planText = data.plan || planText;
     if(editor){ editor.value = planText; }
     renderPreview();
     setPlanTab('preview');
-    if(status){ status.textContent = 'Plan refined.'; setTimeout(()=>{ status.textContent=''; }, 2500); }
+    if(status){ status.textContent = 'Plan refined.'; }
+    setTimeout(closeRefinePanel, 900);
   } catch(e) {
     if(status){ status.textContent = 'We couldn’t reach the server. Please try again.'; }
   } finally {
-    if(btn){ btn.disabled = false; btn.textContent = originalLabel || 'Refine with AI'; }
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Apply Refinement'; }
   }
 }
+
+async function refinePlan(){ openRefinePanel(); }
 
 function openLogoDesigner(){
   showView('logo');
