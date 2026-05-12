@@ -515,6 +515,67 @@ def plan_pdf():
     )
 
 
+# ---- Logo generation -------------------------------------------------------
+
+LOGO_STYLE_HINTS = {
+    "modern": "modern, clean, minimalist, geometric shapes, professional",
+    "classic": "classic, elegant, timeless, refined typography, traditional emblem",
+    "playful": "playful, friendly, vibrant colours, rounded shapes, approachable",
+    "luxury": "luxury, premium, gold and deep tones, sophisticated, high-end",
+    "tech": "tech, futuristic, gradient, sleek, app-icon style",
+    "earthy": "earthy, organic, natural tones, hand-crafted feel, African-inspired motifs",
+}
+
+
+@app.route("/api/plan/logo", methods=["POST"])
+@login_required
+def generate_logo():
+    if client is None:
+        return jsonify({"error": "OPENAI_API_KEY is not set on the server."}), 500
+    body = request.get_json(silent=True) or {}
+    name = (body.get("name") or "").strip()
+    industry = (body.get("industry") or "").strip()
+    idea = (body.get("idea") or "").strip()
+    style = (body.get("style") or "modern").strip().lower()
+    if not name:
+        return jsonify({"error": "Business name is required."}), 400
+
+    style_hint = LOGO_STYLE_HINTS.get(style, LOGO_STYLE_HINTS["modern"])
+    prompt = (
+        f"A professional business logo for a South African company called \"{name}\". "
+        f"Style: {style_hint}. "
+        f"Industry: {industry or 'general business'}. "
+        f"Concept: {idea or name}. "
+        "The logo should be a clean vector-style mark on a plain white background, "
+        "centred, balanced composition, suitable for use on business cards, websites and signage. "
+        "Include the company name as part of the logo in clear, legible typography. "
+        "No mock-ups, no extra text, no watermarks, no photographs."
+    )
+
+    try:
+        result = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+            response_format="b64_json",
+        )
+        b64 = result.data[0].b64_json
+    except OpenAIError as e:
+        return jsonify({"error": f"Image generation failed: {e}"}), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({
+        "ok": True,
+        "image_b64": b64,
+        "mime": "image/png",
+        "style": style,
+        "filename": f"{_safe_filename(name)}_logo.png",
+    })
+
+
 # Initialise DB at import time so gunicorn/wsgi workers also create tables.
 try:
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
