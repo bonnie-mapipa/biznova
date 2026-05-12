@@ -39,6 +39,8 @@ SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "").strip() or secrets.token_hex(32)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.getenv("BIZNOVA_DB_PATH", os.path.join(BASE_DIR, "biznova.db"))
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+USE_POSTGRES = DATABASE_URL.startswith(("postgres://", "postgresql://"))
 IS_PROD = os.getenv("FLASK_ENV", "development").lower() == "production" or os.getenv("RENDER") is not None
 
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
@@ -55,16 +57,129 @@ client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 
 # ---- Database --------------------------------------------------------------
+# Supports SQLite (local dev) and Postgres (production via DATABASE_URL).
+# We write SQL using "?" placeholders and translate to "%s" when on Postgres.
+
+if USE_POSTGRES:
+    import psycopg
+    from psycopg.rows import dict_row
+
+    # Normalise scheme for psycopg
+    _PG_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+
+class _Row(dict):
+    """Dict that also supports row['key'] AND row[index] for sqlite compat."""
+    pass
+
+
+class _Cursor:
+    def __init__(self, raw, is_pg):
+        self._raw = raw
+        self._is_pg = is_pg
+
+    def execute(self, sql, params=()):
+        if self._is_pg:
+            sql = sql.replace("?", "%s")
+        self._raw.execute(sql, params)
+        return self
+
+    def fetchone(self):
+        return self._raw.fetchone()
+
+    def fetchall(self):
+        return self._raw.fetchall()
+
+    @property
+    def rowcount(self):
+        return self._raw.rowcount
+
+    @property
+    def lastrowid(self):
+        if self._is_pg:
+            row = self._raw.fetchone()
+            return row["id"] if row else None
+        return self._raw.lastrowid
+
+
+class _Conn:
+    def __init__(self):
+        self._is_pg = USE_POSTGRES
+        if self._is_pg:
+            self._raw = psycopg.connect(_PG_URL, row_factory=dict_row, autocommit=False)
+        else:
+            self._raw = sqlite3.connect(DB_PATH)
+            self._raw.row_factory = sqlite3.Row
+
+    def execute(self, sql, params=()):
+        if self._is_pg:
+            # If insert and we want lastrowid, append RETURNING id
+            cur = self._raw.cursor()
+            sql_pg = sql.replace("?", "%s")
+            if sql_pg.lstrip().upper().startswith("INSERT") and "RETURNING" not in sql_pg.upper():
+                sql_pg = sql_pg.rstrip().rstrip(";") + " RETURNING id"
+            cur.execute(sql_pg, params)
+            return _Cursor(cur, True)
+        cur = self._raw.execute(sql, params)
+        return _Cursor(cur, False)
+
+    def executescript(self, sql):
+        if self._is_pg:
+            cur = self._raw.cursor()
+            cur.execute(sql)
+        else:
+            self._raw.executescript(sql)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            self._raw.commit()
+        else:
+            self._raw.rollback()
+        self._raw.close()
+        return False
+
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return _Conn()
 
 
 def init_db():
-    with get_db() as conn:
-        conn.executescript("""
+    if USE_POSTGRES:
+        schema = """
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            first_name TEXT,
+            last_name TEXT,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS plans (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_plans_user ON plans(user_id, updated_at DESC);
+        CREATE TABLE IF NOT EXISTS logos (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            style TEXT,
+            prompt TEXT,
+            image_b64 TEXT NOT NULL,
+            mime TEXT NOT NULL DEFAULT 'image/png',
+            created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_logos_user ON logos(user_id, created_at DESC);
+        """
+    else:
+        schema = """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
@@ -96,7 +211,9 @@ def init_db():
         );
         CREATE INDEX IF NOT EXISTS idx_logos_user ON logos(user_id, created_at DESC);
         DROP TABLE IF EXISTS otps;
-        """)
+        """
+    with get_db() as conn:
+        conn.executescript(schema)
 
 
 # ---- Auth helpers ----------------------------------------------------------
@@ -168,6 +285,10 @@ def auth_register():
             row = conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
     except sqlite3.IntegrityError:
         return jsonify({"error": "An account with this email already exists. Please sign in instead."}), 409
+    except Exception as e:
+        if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
+            return jsonify({"error": "An account with this email already exists. Please sign in instead."}), 409
+        raise
 
     session.permanent = True
     session["user_id"] = row["id"]
@@ -721,10 +842,11 @@ def delete_logo(logo_id):
 
 
 # Initialise DB at import time so gunicorn/wsgi workers also create tables.
-try:
-    os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
-except OSError:
-    pass
+if not USE_POSTGRES:
+    try:
+        os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
+    except OSError:
+        pass
 init_db()
 
 if __name__ == "__main__":
