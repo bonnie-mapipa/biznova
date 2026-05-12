@@ -11,8 +11,6 @@ import os
 import re
 import sqlite3
 import secrets
-import smtplib
-from email.message import EmailMessage
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc
@@ -38,18 +36,6 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "").strip() or secrets.token_hex(32)
-
-# SMTP (optional). If not configured, OTPs are printed to console.
-SMTP_HOST = os.getenv("SMTP_HOST", "").strip()
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "").strip()
-SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
-SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER).strip()
-SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() != "false"
-
-# Resend HTTP API (preferred on hosts that block SMTP, e.g. Render free tier)
-RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
-RESEND_FROM = os.getenv("RESEND_FROM", "BizNova <onboarding@resend.dev>").strip()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.getenv("BIZNOVA_DB_PATH", os.path.join(BASE_DIR, "biznova.db"))
@@ -82,83 +68,22 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
-            password_hash TEXT,
+            password_hash TEXT NOT NULL,
             first_name TEXT,
             last_name TEXT,
-            email_verified INTEGER DEFAULT 0,
             created_at TEXT NOT NULL
         );
-        CREATE TABLE IF NOT EXISTS otps (
-            email TEXT PRIMARY KEY,
-            otp_hash TEXT NOT NULL,
-            expires_at TEXT NOT NULL,
-            attempts INTEGER DEFAULT 0
-        );
+        DROP TABLE IF EXISTS otps;
         """)
 
 
 # ---- Auth helpers ----------------------------------------------------------
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-OTP_TTL_MINUTES = 10
-OTP_MAX_ATTEMPTS = 5
 
 
 def is_valid_email(s: str) -> bool:
     return bool(s) and bool(EMAIL_RE.match(s))
-
-
-def send_otp_email(to_email: str, otp: str) -> None:
-    body = (
-        f"Your BizNova one-time pin is: {otp}\n\n"
-        f"It expires in {OTP_TTL_MINUTES} minutes.\n"
-        "If you did not request this, you can ignore this email."
-    )
-    subject = "Your BizNova verification code"
-
-    # Prefer Resend HTTP API (works where outbound SMTP is blocked)
-    if RESEND_API_KEY:
-        import urllib.request, urllib.error, json as _json
-        payload = _json.dumps({
-            "from": RESEND_FROM,
-            "to": [to_email],
-            "subject": subject,
-            "text": body,
-        }).encode("utf-8")
-        req = urllib.request.Request(
-            "https://api.resend.com/emails",
-            data=payload,
-            headers={
-                "Authorization": f"Bearer {RESEND_API_KEY}",
-                "Content-Type": "application/json",
-                "User-Agent": "BizNova/1.0 (+https://biznova.onrender.com)",
-                "Accept": "application/json",
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=15) as r:
-                r.read()
-            return
-        except urllib.error.HTTPError as e:
-            detail = e.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Resend API error {e.code}: {detail}")
-
-    if not (SMTP_HOST and SMTP_FROM):
-        # Dev mode: print to console
-        print(f"[OTP] {to_email} -> {otp}  (configure RESEND_API_KEY or SMTP_* to email instead)")
-        return
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = SMTP_FROM
-    msg["To"] = to_email
-    msg.set_content(body)
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
-        if SMTP_USE_TLS:
-            s.starttls()
-        if SMTP_USER and SMTP_PASS:
-            s.login(SMTP_USER, SMTP_PASS)
-        s.send_message(msg)
 
 
 def login_required(fn):
@@ -192,102 +117,18 @@ def auth_me():
     return jsonify({"authenticated": True, "user": user})
 
 
-@app.route("/api/auth/send-otp", methods=["POST"])
-def auth_send_otp():
-    body = request.get_json(silent=True) or {}
-    email = (body.get("email") or "").strip().lower()
-    if not is_valid_email(email):
-        return jsonify({"error": "Please enter a valid email address."}), 400
-
-    otp = f"{secrets.randbelow(1000000):06d}"
-    otp_hash = generate_password_hash(otp)
-    expires = (datetime.now(UTC) + timedelta(minutes=OTP_TTL_MINUTES)).isoformat()
-    with get_db() as conn:
-        conn.execute(
-            "INSERT INTO otps(email, otp_hash, expires_at, attempts) VALUES(?,?,?,0) "
-            "ON CONFLICT(email) DO UPDATE SET otp_hash=excluded.otp_hash, "
-            "expires_at=excluded.expires_at, attempts=0",
-            (email, otp_hash, expires),
-        )
-        existing = conn.execute(
-            "SELECT id, email_verified FROM users WHERE email=?", (email,)
-        ).fetchone()
-
-    try:
-        send_otp_email(email, otp)
-    except Exception as e:
-        return jsonify({"error": f"Failed to send email: {e}"}), 500
-
-    return jsonify({
-        "ok": True,
-        "is_new_user": existing is None or not existing["email_verified"],
-        "expires_in_minutes": OTP_TTL_MINUTES,
-        # Only echo the OTP back if SMTP is not configured (dev convenience).
-        "dev_otp": otp if not SMTP_HOST else None,
-    })
-
-
-@app.route("/api/auth/verify-otp", methods=["POST"])
-def auth_verify_otp():
-    body = request.get_json(silent=True) or {}
-    email = (body.get("email") or "").strip().lower()
-    otp = (body.get("otp") or "").strip()
-    if not is_valid_email(email) or not otp:
-        return jsonify({"error": "Email and OTP are required."}), 400
-
-    with get_db() as conn:
-        row = conn.execute(
-            "SELECT otp_hash, expires_at, attempts FROM otps WHERE email=?", (email,)
-        ).fetchone()
-        if not row:
-            return jsonify({"error": "No OTP requested for this email."}), 400
-        if datetime.fromisoformat(row["expires_at"]) < datetime.now(UTC):
-            conn.execute("DELETE FROM otps WHERE email=?", (email,))
-            return jsonify({"error": "OTP expired. Please request a new one."}), 400
-        if row["attempts"] >= OTP_MAX_ATTEMPTS:
-            conn.execute("DELETE FROM otps WHERE email=?", (email,))
-            return jsonify({"error": "Too many incorrect attempts. Request a new OTP."}), 429
-        if not check_password_hash(row["otp_hash"], otp):
-            conn.execute(
-                "UPDATE otps SET attempts=attempts+1 WHERE email=?", (email,)
-            )
-            return jsonify({"error": "Incorrect OTP."}), 400
-
-        # OTP valid
-        conn.execute("DELETE FROM otps WHERE email=?", (email,))
-        existing = conn.execute(
-            "SELECT id, email_verified, first_name, password_hash FROM users WHERE email=?",
-            (email,),
-        ).fetchone()
-        if existing is None:
-            conn.execute(
-                "INSERT INTO users(email, email_verified, created_at) VALUES(?,1,?)",
-                (email, datetime.now(UTC).isoformat()),
-            )
-            is_new = True
-        else:
-            conn.execute("UPDATE users SET email_verified=1 WHERE email=?", (email,))
-            is_new = not (existing["first_name"] and existing["password_hash"])
-
-    # Mark email as verified in session, but do NOT log them in until they
-    # complete registration / enter their password.
-    session["pending_email"] = email
-    return jsonify({"ok": True, "is_new_user": is_new, "email": email})
-
-
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
-    """Complete account setup after OTP verification (new users)."""
+    """Create a new account with email + password."""
     body = request.get_json(silent=True) or {}
     email = (body.get("email") or "").strip().lower()
-    if email != session.get("pending_email"):
-        return jsonify({"error": "Email not verified in this session."}), 400
-
     first = (body.get("first_name") or "").strip()
     last = (body.get("last_name") or "").strip()
     pwd = body.get("password") or ""
     pwd2 = body.get("password_confirm") or ""
 
+    if not is_valid_email(email):
+        return jsonify({"error": "Please enter a valid email address."}), 400
     if not first or not last:
         return jsonify({"error": "First and last name are required."}), 400
     if len(pwd) < 8:
@@ -296,14 +137,16 @@ def auth_register():
         return jsonify({"error": "Passwords do not match."}), 400
 
     pwd_hash = generate_password_hash(pwd)
-    with get_db() as conn:
-        conn.execute(
-            "UPDATE users SET first_name=?, last_name=?, password_hash=?, email_verified=1 WHERE email=?",
-            (first, last, pwd_hash, email),
-        )
-        row = conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+    try:
+        with get_db() as conn:
+            conn.execute(
+                "INSERT INTO users(email, password_hash, first_name, last_name, created_at) VALUES(?,?,?,?,?)",
+                (email, pwd_hash, first, last, datetime.now(UTC).isoformat()),
+            )
+            row = conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "An account with this email already exists. Please sign in instead."}), 409
 
-    session.pop("pending_email", None)
     session.permanent = True
     session["user_id"] = row["id"]
     return jsonify({"ok": True, "user": current_user()})
@@ -311,21 +154,20 @@ def auth_register():
 
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
-    """Existing-user login: email + password (after OTP verification)."""
+    """Sign in with email + password."""
     body = request.get_json(silent=True) or {}
     email = (body.get("email") or "").strip().lower()
     pwd = body.get("password") or ""
-    if email != session.get("pending_email"):
-        return jsonify({"error": "Please verify your email with an OTP first."}), 400
+    if not is_valid_email(email) or not pwd:
+        return jsonify({"error": "Email and password are required."}), 400
 
     with get_db() as conn:
         row = conn.execute(
             "SELECT id, password_hash FROM users WHERE email=?", (email,)
         ).fetchone()
     if not row or not row["password_hash"] or not check_password_hash(row["password_hash"], pwd):
-        return jsonify({"error": "Incorrect password."}), 401
+        return jsonify({"error": "Incorrect email or password."}), 401
 
-    session.pop("pending_email", None)
     session.permanent = True
     session["user_id"] = row["id"]
     return jsonify({"ok": True, "user": current_user()})

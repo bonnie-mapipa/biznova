@@ -19,14 +19,3 @@ services:
         sync: false
       - key: OPENAI_MODEL
         value: gpt-4o-mini
-      # Optional: configure SMTP to actually email OTPs
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: SMTP_FROM
-        sync: false
