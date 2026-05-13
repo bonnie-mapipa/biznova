@@ -813,12 +813,10 @@ def generate_logo():
 
     try:
         result = client.images.generate(
-            model="dall-e-3",
+            model=os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1"),
             prompt=prompt,
             size="1024x1024",
-            quality="standard",
             n=1,
-            response_format="b64_json",
         )
         b64 = result.data[0].b64_json
     except OpenAIError as e:
