@@ -31,6 +31,7 @@ Then open http://localhost:5001
 | ------ | --------------------- | ----------------------------------------- |
 | GET    | `/`                   | Serves `biznova_app.html`                 |
 | GET    | `/privacy`            | Serves `privacy_policy.html`              |
+| GET    | `/data-deletion`      | Serves `data_deletion.html`               |
 | GET    | `/api/health`         | Health + key configuration check          |
 | POST   | `/api/chat`           | Nova chat. Body: `{mode, messages[]}`     |
 | POST   | `/api/plan`           | Generate a business plan from form fields |
