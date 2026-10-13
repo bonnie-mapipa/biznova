@@ -388,6 +388,11 @@ def login_page():
     return send_from_directory(BASE_DIR, "login.html")
 
 
+@app.route("/privacy")
+def privacy_page():
+    return send_from_directory(BASE_DIR, "privacy_policy.html")
+
+
 @app.route("/api/health")
 def health():
     return jsonify({

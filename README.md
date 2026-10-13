@@ -30,6 +30,7 @@ Then open http://localhost:5001
 | Method | Path                  | Purpose                                   |
 | ------ | --------------------- | ----------------------------------------- |
 | GET    | `/`                   | Serves `biznova_app.html`                 |
+| GET    | `/privacy`            | Serves `privacy_policy.html`              |
 | GET    | `/api/health`         | Health + key configuration check          |
 | POST   | `/api/chat`           | Nova chat. Body: `{mode, messages[]}`     |
 | POST   | `/api/plan`           | Generate a business plan from form fields |
