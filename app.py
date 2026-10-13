@@ -393,6 +393,11 @@ def privacy_page():
     return send_from_directory(BASE_DIR, "privacy_policy.html")
 
 
+@app.route("/data-deletion")
+def data_deletion_page():
+    return send_from_directory(BASE_DIR, "data_deletion.html")
+
+
 @app.route("/api/health")
 def health():
     return jsonify({
